@@ -1,0 +1,635 @@
+{
+  "model": {
+    "id": "google/embeddinggemma-2",
+    "active_text_parameters_millions": 270,
+    "embedding_dimensions": 768,
+    "prompt": "task: clustering | query:",
+    "max_tokens_per_text": 2048,
+    "device": "cpu",
+    "text_only_configuration": {
+      "vision_config": null,
+      "audio_config": null
+    }
+  },
+  "data": {
+    "real_articles": 20,
+    "real_outbreak_articles": 12,
+    "real_general_news_articles": 8,
+    "synthetic_sentences": 36,
+    "real_article_selection": [
+      {
+        "sample_id": 424,
+        "article_index": 1,
+        "date": "2001-09-17",
+        "source": "who_don",
+        "title": "17 September 2001 Disease Outbreak Reported WHO has received reports of cholera outbreaks in Burkina Faso, Côte d'Ivoire and Niger",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2001_09_17a-en",
+        "label": "outbreak",
+        "disease": "cholera"
+      },
+      {
+        "sample_id": 468,
+        "article_index": 0,
+        "date": "2001-12-03",
+        "source": "who_don",
+        "title": "03 December 2001 Disease Outbreak Reported As of 26 November 2001, WHO has reported a total of 2 050 cases of cholera and 80 deaths in Kano State in Kano Metropolis",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2001_12_03-en",
+        "label": "outbreak",
+        "disease": "cholera"
+      },
+      {
+        "sample_id": 605,
+        "article_index": 0,
+        "date": "2003-02-18",
+        "source": "who_don",
+        "title": "18 February 2003 Disease Outbreak Reported As of 18 February, a total of 73 suspected cases and 59 deaths from Ebola haemorrhagic fever has been reported in the districts of Mbomo",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2003_02_18-en",
+        "label": "outbreak",
+        "disease": "ebola"
+      },
+      {
+        "sample_id": 608,
+        "article_index": 1,
+        "date": "2003-02-26",
+        "source": "who_don",
+        "title": "26 February 2003Disease Outbreak Reported As of 25 February 2003, a total of 5 laboratory-confirmed and 90 probable cases, including 77 deaths (case fatality rate 81%) from Ebola h",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2003_02_26-en",
+        "label": "outbreak",
+        "disease": "ebola"
+      },
+      {
+        "sample_id": 524,
+        "article_index": 0,
+        "date": "2002-05-08",
+        "source": "who_don",
+        "title": "08 May 2002 Disease Outbreak Reported During the first quarter of this year, Brazil's national health authorities have reported 317 787 cases of dengue fever including 57 deaths, w",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2002_05_08-en",
+        "label": "outbreak",
+        "disease": "dengue"
+      },
+      {
+        "sample_id": 532,
+        "article_index": 0,
+        "date": "2002-06-21",
+        "source": "who_don",
+        "title": "21 June 2002 Disease Outbreak Reported WHO has reported an increase in endemic dengue disease in the country",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2002_06_21e-en",
+        "label": "outbreak",
+        "disease": "dengue"
+      },
+      {
+        "sample_id": 4001,
+        "article_index": 3,
+        "date": "2019-10-22",
+        "source": "who_don",
+        "title": "Health authorities in Lebanon are responding to an outbreak of measles",
+        "url": "https://reliefweb.int/report/lebanon/measles-lebanon-disease-outbreak-news-22-october-2019",
+        "label": "outbreak",
+        "disease": "measles"
+      },
+      {
+        "sample_id": 4034,
+        "article_index": 1,
+        "date": "2019-11-27",
+        "source": "who_don",
+        "title": "Many countries around the world are experiencing measles outbreaks",
+        "url": "https://reliefweb.int/report/world/measles-global-situation-disease-outbreak-news-27-november-2019",
+        "label": "outbreak",
+        "disease": "measles"
+      },
+      {
+        "sample_id": 4618,
+        "article_index": 100,
+        "date": "2021-08-09",
+        "source": "who_don",
+        "title": "On 6 August 2021, the Ministry of Health of Guinea informed WHO of a confirmed case of Marburg virus disease (MVD) in Guéckédou Prefecture, Nzérékoré Region, south-western Guinea",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2021-DON331",
+        "label": "outbreak",
+        "disease": "marburg"
+      },
+      {
+        "sample_id": 4657,
+        "article_index": 82,
+        "date": "2021-09-17",
+        "source": "who_don",
+        "title": "On 16 September 2021, the Ministry of Health of Guinea declared the end of the Marburg virus disease outbreak in Guéckédou prefecture, Nzérékoré Region",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/marburg-virus-disease---guinea",
+        "label": "outbreak",
+        "disease": "marburg"
+      },
+      {
+        "sample_id": 2750,
+        "article_index": 3,
+        "date": "2015-10-21",
+        "source": "who_don",
+        "title": "21 October 2015 Between 8 October and 16 October 2015, the National IHR Focal Points of Brazil and Colombia notified PAHO/WHO of cases of Zika virus infection",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/21-october-2015-zika-en",
+        "label": "outbreak",
+        "disease": "zika"
+      },
+      {
+        "sample_id": 4684,
+        "article_index": 93,
+        "date": "2021-10-14",
+        "source": "who_don",
+        "title": "Zika Virus Disease - India",
+        "url": "https://www.who.int/emergencies/disease-outbreak-news/item/zika-virus-disease-india",
+        "label": "outbreak",
+        "disease": "zika"
+      },
+      {
+        "sample_id": 4552,
+        "article_index": 0,
+        "date": "2021-06-04",
+        "source": "arkansas_3dlnews",
+        "title": "Former CPD officer found guilty of DWI | Camden News",
+        "url": "https://www.camdenarknews.com/news/2021/jun/04/former-cpd-officer-found-guilty-dwi",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 3964,
+        "article_index": 1,
+        "date": "2019-09-12",
+        "source": "arkansas_3dlnews",
+        "title": "VOTE: Gentry play of the week | Westside Eagle Observer",
+        "url": "https://www.eagleobserver.com/news/2019/sep/12/vote-gentry-play-of-the-week-20190912",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 5379,
+        "article_index": 0,
+        "date": "2023-10-17",
+        "source": "arkansas_3dlnews",
+        "title": "Arkansas enacts trade war with China (just kidding, it's 160 acres of farmland in Craighead County) - Arkansas Times",
+        "url": "https://arktimes.com/arkansas-blog/2023/10/17/arkansas-enacts-trade-war-with-china-just-kidding-its-160-acres-of-farmland-in-craighead-county",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 5360,
+        "article_index": 4,
+        "date": "2023-09-27",
+        "source": "arkansas_3dlnews",
+        "title": "Mohawks host Marked Tree Indians for 2023 Homecoming - Clay County Times Democrat",
+        "url": "https://www.cctimesdemocrat.com/mohawks-host-marked-tree-indians-for-2023-homecoming",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 4751,
+        "article_index": 4,
+        "date": "2021-12-20",
+        "source": "arkansas_3dlnews",
+        "title": "Haas Hall Academy could be headed to Fort Smith",
+        "url": "https://www.swtimes.com/story/news/2021/12/20/haas-hall-academy-could-headed-fort-smith/8931721002",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 5012,
+        "article_index": 1,
+        "date": "2022-09-08",
+        "source": "arkansas_3dlnews",
+        "title": "Big Smith To Take Over County Waste | Cleveland County Herald",
+        "url": "https://www.clevelandcountyherald.com/news/big-smith-take-over-county-waste",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 3590,
+        "article_index": 0,
+        "date": "2018-07-04",
+        "source": "arkansas_3dlnews",
+        "title": "Bostain Wins All-State Honors | Washington County Enterprise-Leader",
+        "url": "https://wcel.nwaonline.com/news/2018/jul/04/bostain-wins-all-state-honors-20180704",
+        "label": "general_news",
+        "disease": null
+      },
+      {
+        "sample_id": 3511,
+        "article_index": 0,
+        "date": "2018-04-02",
+        "source": "arkansas_3dlnews",
+        "title": "Sinclair forces local news anchors, including in Little Rock, to parrot the same script - Arkansas Times",
+        "url": "https://arktimes.com/arkansas-blog/2018/04/02/sinclair-forces-local-news-anchors-including-in-little-rock-to-parrot-the-same-script",
+        "label": "general_news",
+        "disease": null
+      }
+    ]
+  },
+  "tests": {
+    "real_disease_separation": {
+      "mean_same_label_cosine": 0.9205864071846008,
+      "mean_different_label_cosine": 0.831324311097463,
+      "same_minus_different_margin": 0.08926209608713787,
+      "same_label_pairs": 6,
+      "different_label_pairs": 60,
+      "leave_one_out_disease_centroid": {
+        "correct": 12,
+        "total": 12,
+        "accuracy": 1.0,
+        "predictions": [
+          {
+            "id": "real_424_1",
+            "actual": "cholera",
+            "predicted": "cholera"
+          },
+          {
+            "id": "real_468_0",
+            "actual": "cholera",
+            "predicted": "cholera"
+          },
+          {
+            "id": "real_605_0",
+            "actual": "ebola",
+            "predicted": "ebola"
+          },
+          {
+            "id": "real_608_1",
+            "actual": "ebola",
+            "predicted": "ebola"
+          },
+          {
+            "id": "real_524_0",
+            "actual": "dengue",
+            "predicted": "dengue"
+          },
+          {
+            "id": "real_532_0",
+            "actual": "dengue",
+            "predicted": "dengue"
+          },
+          {
+            "id": "real_4001_3",
+            "actual": "measles",
+            "predicted": "measles"
+          },
+          {
+            "id": "real_4034_1",
+            "actual": "measles",
+            "predicted": "measles"
+          },
+          {
+            "id": "real_4618_100",
+            "actual": "marburg",
+            "predicted": "marburg"
+          },
+          {
+            "id": "real_4657_82",
+            "actual": "marburg",
+            "predicted": "marburg"
+          },
+          {
+            "id": "real_2750_3",
+            "actual": "zika",
+            "predicted": "zika"
+          },
+          {
+            "id": "real_4684_93",
+            "actual": "zika",
+            "predicted": "zika"
+          }
+        ]
+      },
+      "same_disease_pairs": {
+        "cholera": {
+          "titles": [
+            "17 September 2001 Disease Outbreak Reported WHO has received reports of cholera outbreaks in Burkina Faso, Côte d'Ivoire and Niger",
+            "03 December 2001 Disease Outbreak Reported As of 26 November 2001, WHO has reported a total of 2 050 cases of cholera and 80 deaths in Kano State in Kano Metropolis"
+          ],
+          "cosine": 0.9206628799438477
+        },
+        "ebola": {
+          "titles": [
+            "18 February 2003 Disease Outbreak Reported As of 18 February, a total of 73 suspected cases and 59 deaths from Ebola haemorrhagic fever has been reported in the districts of Mbomo",
+            "26 February 2003Disease Outbreak Reported As of 25 February 2003, a total of 5 laboratory-confirmed and 90 probable cases, including 77 deaths (case fatality rate 81%) from Ebola h"
+          ],
+          "cosine": 0.9220064878463745
+        },
+        "dengue": {
+          "titles": [
+            "08 May 2002 Disease Outbreak Reported During the first quarter of this year, Brazil's national health authorities have reported 317 787 cases of dengue fever including 57 deaths, w",
+            "21 June 2002 Disease Outbreak Reported WHO has reported an increase in endemic dengue disease in the country"
+          ],
+          "cosine": 0.9282387495040894
+        },
+        "measles": {
+          "titles": [
+            "Health authorities in Lebanon are responding to an outbreak of measles",
+            "Many countries around the world are experiencing measles outbreaks"
+          ],
+          "cosine": 0.8988661766052246
+        },
+        "marburg": {
+          "titles": [
+            "On 6 August 2021, the Ministry of Health of Guinea informed WHO of a confirmed case of Marburg virus disease (MVD) in Guéckédou Prefecture, Nzérékoré Region, south-western Guinea",
+            "On 16 September 2021, the Ministry of Health of Guinea declared the end of the Marburg virus disease outbreak in Guéckédou prefecture, Nzérékoré Region"
+          ],
+          "cosine": 0.9755218029022217
+        },
+        "zika": {
+          "titles": [
+            "21 October 2015 Between 8 October and 16 October 2015, the National IHR Focal Points of Brazil and Colombia notified PAHO/WHO of cases of Zika virus infection",
+            "Zika Virus Disease - India"
+          ],
+          "cosine": 0.8782223463058472
+        }
+      }
+    },
+    "real_outbreak_vs_general_news": {
+      "mean_outbreak_to_outbreak_cosine": 0.8394390471053846,
+      "mean_general_to_general_cosine": 0.7907049102442605,
+      "mean_outbreak_to_general_cosine": 0.6801675036549568,
+      "leave_one_out_label_centroid": {
+        "correct": 20,
+        "total": 20,
+        "accuracy": 1.0,
+        "predictions": [
+          {
+            "id": "real_424_1",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_468_0",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_605_0",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_608_1",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_524_0",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_532_0",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_4001_3",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_4034_1",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_4618_100",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_4657_82",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_2750_3",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_4684_93",
+            "actual": "outbreak",
+            "predicted": "outbreak"
+          },
+          {
+            "id": "real_4552_0",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_3964_1",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_5379_0",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_5360_4",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_4751_4",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_5012_1",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_3590_0",
+            "actual": "general_news",
+            "predicted": "general_news"
+          },
+          {
+            "id": "real_3511_0",
+            "actual": "general_news",
+            "predicted": "general_news"
+          }
+        ]
+      },
+      "interpretation_note": "Source and topic differ between groups, so this real-data comparison is descriptive; controlled synthetic comparisons reduce that confound."
+    },
+    "synthetic_disease_name_swap": {
+      "mean_same_label_cosine": 0.921370138724645,
+      "mean_different_label_cosine": 0.9279009133577347,
+      "same_minus_different_margin": -0.006530774633089709,
+      "same_label_pairs": 6,
+      "different_label_pairs": 60,
+      "leave_one_out_disease_centroid": {
+        "correct": 0,
+        "total": 12,
+        "accuracy": 0.0,
+        "predictions": [
+          {
+            "id": "synthetic_name_swap_cholera_1",
+            "actual": "cholera",
+            "predicted": "measles"
+          },
+          {
+            "id": "synthetic_name_swap_cholera_2",
+            "actual": "cholera",
+            "predicted": "ebola"
+          },
+          {
+            "id": "synthetic_name_swap_dengue_1",
+            "actual": "dengue",
+            "predicted": "measles"
+          },
+          {
+            "id": "synthetic_name_swap_dengue_2",
+            "actual": "dengue",
+            "predicted": "zika"
+          },
+          {
+            "id": "synthetic_name_swap_measles_1",
+            "actual": "measles",
+            "predicted": "cholera"
+          },
+          {
+            "id": "synthetic_name_swap_measles_2",
+            "actual": "measles",
+            "predicted": "zika"
+          },
+          {
+            "id": "synthetic_name_swap_marburg_1",
+            "actual": "marburg",
+            "predicted": "measles"
+          },
+          {
+            "id": "synthetic_name_swap_marburg_2",
+            "actual": "marburg",
+            "predicted": "ebola"
+          },
+          {
+            "id": "synthetic_name_swap_ebola_1",
+            "actual": "ebola",
+            "predicted": "dengue"
+          },
+          {
+            "id": "synthetic_name_swap_ebola_2",
+            "actual": "ebola",
+            "predicted": "zika"
+          },
+          {
+            "id": "synthetic_name_swap_zika_1",
+            "actual": "zika",
+            "predicted": "dengue"
+          },
+          {
+            "id": "synthetic_name_swap_zika_2",
+            "actual": "zika",
+            "predicted": "ebola"
+          }
+        ]
+      },
+      "same_disease_pair_cosines": {
+        "cholera": 0.9200035333633423,
+        "dengue": 0.9263290762901306,
+        "measles": 0.9241328835487366,
+        "marburg": 0.9202532172203064,
+        "ebola": 0.918972373008728,
+        "zika": 0.918529748916626
+      }
+    },
+    "synthetic_disease_specific_context": {
+      "mean_same_label_cosine": 0.9030812581380209,
+      "mean_different_label_cosine": 0.8825299769639969,
+      "same_minus_different_margin": 0.02055128117402394,
+      "same_label_pairs": 6,
+      "different_label_pairs": 60,
+      "leave_one_out_disease_centroid": {
+        "correct": 0,
+        "total": 12,
+        "accuracy": 0.0,
+        "predictions": [
+          {
+            "id": "synthetic_disease_context_cholera_1",
+            "actual": "cholera",
+            "predicted": "measles"
+          },
+          {
+            "id": "synthetic_disease_context_cholera_2",
+            "actual": "cholera",
+            "predicted": "ebola"
+          },
+          {
+            "id": "synthetic_disease_context_dengue_1",
+            "actual": "dengue",
+            "predicted": "measles"
+          },
+          {
+            "id": "synthetic_disease_context_dengue_2",
+            "actual": "dengue",
+            "predicted": "zika"
+          },
+          {
+            "id": "synthetic_disease_context_measles_1",
+            "actual": "measles",
+            "predicted": "dengue"
+          },
+          {
+            "id": "synthetic_disease_context_measles_2",
+            "actual": "measles",
+            "predicted": "ebola"
+          },
+          {
+            "id": "synthetic_disease_context_marburg_1",
+            "actual": "marburg",
+            "predicted": "ebola"
+          },
+          {
+            "id": "synthetic_disease_context_marburg_2",
+            "actual": "marburg",
+            "predicted": "ebola"
+          },
+          {
+            "id": "synthetic_disease_context_ebola_1",
+            "actual": "ebola",
+            "predicted": "marburg"
+          },
+          {
+            "id": "synthetic_disease_context_ebola_2",
+            "actual": "ebola",
+            "predicted": "marburg"
+          },
+          {
+            "id": "synthetic_disease_context_zika_1",
+            "actual": "zika",
+            "predicted": "dengue"
+          },
+          {
+            "id": "synthetic_disease_context_zika_2",
+            "actual": "zika",
+            "predicted": "dengue"
+          }
+        ]
+      }
+    },
+    "synthetic_outbreak_relevance": {
+      "active_vs_incidental_disease_mention_cosine": 0.809300422668457,
+      "active_vs_unrelated_news_cosine": 0.7962455749511719,
+      "incidental_vs_unrelated_news_cosine": 0.8361612558364868
+    },
+    "synthetic_intensity": {
+      "mean_within_level_cosine": 0.9546483159065247,
+      "mean_between_level_cosine": 0.9349113901456197,
+      "low_to_medium_cosine": 0.9361970275640488,
+      "medium_to_high_cosine": 0.947042241692543,
+      "low_to_high_cosine": 0.9214949011802673
+    },
+    "synthetic_geographic_extent": {
+      "one_area_to_several_districts_cosine": 0.9714068174362183,
+      "several_districts_to_many_regions_cosine": 0.9775527715682983,
+      "one_area_to_many_regions_cosine": 0.9667688608169556
+    }
+  },
+  "limitations": [
+    "This is a small exploratory test, not a trained detector or a warning system.",
+    "WHO outbreak reports and Arkansas local-news articles have different publishers and writing styles; that can help separate the real groups independently of outbreak relevance.",
+    "Embedding similarity is not a calibrated probability, and a vector change does not prove that the model understood the cause of the change.",
+    "The real disease groups contain only two reports per disease. Artificial examples isolate wording changes but are not a substitute for labeled evaluation data.",
+    "Long article bodies are truncated at 2,048 tokens before embedding."
+  ]
+}

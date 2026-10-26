@@ -1,0 +1,19 @@
+[Unit]
+Description=PULSE daily public-source collection and model inference
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/pulse
+Environment=HOME=/home/ubuntu
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/pulse-venv/bin/python -m backend.daily --force
+Restart=on-failure
+RestartSec=10min
+TimeoutStartSec=3h
+UMask=0077
+NoNewPrivileges=true

@@ -1,0 +1,3 @@
+date,drug_name,unit,starting_stock,quantity_sold,ending_stock,current_stock,expected_delivery
+2026-10-01,Example medicine,tablets,100,12,88,140,20
+2026-10-02,Example medicine,tablets,88,14,74,140,20

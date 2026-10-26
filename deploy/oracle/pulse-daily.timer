@@ -1,0 +1,11 @@
+[Unit]
+Description=Run PULSE collection nightly in America/Chicago
+
+[Timer]
+OnCalendar=*-*-* 23:30:00 America/Chicago
+Persistent=true
+AccuracySec=1min
+Unit=pulse-daily.service
+
+[Install]
+WantedBy=timers.target
