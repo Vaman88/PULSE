@@ -2,18 +2,21 @@
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const prettyDisease = key => key.replace(/_([12])w$/, '').replaceAll('_', ' ');
 let docsLoaded = false;
-async function api(path) {
-  const response = await fetch('/api/v1' + path, {headers:{Accept:'application/json'}});
+async function api(path, options = {}) {
+  const response = await fetch('/api/v1' + path, {...options, headers:{Accept:'application/json', ...options.headers}});
   const data = await response.json();
-  if (!response.ok) throw Error(data.detail || 'The API request failed');
+  if (!response.ok) throw Error(Array.isArray(data.detail) ? data.detail.map(item => `${item.loc.at(-1)}: ${item.msg}`).join('; ') : data.detail || 'The API request failed');
   return data;
 }
 let currentPage = 'home', backStack = [], signedIn = false, workspaceRequest = 0;
-const pages = {home:'Home', workspace:'Workspace', signals:'Signals', api:'API', access:'Sign in', privacy:'Privacy', terms:'Use & limitations'};
+const pages = {home:'Home', workspace:'Workspace', inventory:'Inventory', signals:'Signals', api:'API', access:'Sign in', privacy:'Privacy', terms:'Use & limitations'};
 function updateNavigation() {
   const active = $('.nav button.active'), indicator = $('.nav-indicator');
   indicator.style.opacity = active ? '1' : '0';
   if (active) { indicator.style.width = active.offsetWidth + 'px'; indicator.style.transform = `translateX(${active.offsetLeft}px)`; }
+  const tabs = $('#workspace-nav');
+  tabs.hidden = !signedIn || !['workspace','inventory'].includes(currentPage);
+  tabs.querySelectorAll('[data-screen]').forEach(node => { const active = node.dataset.screen === currentPage; node.classList.toggle('active', active); if (active) node.setAttribute('aria-current','page'); else node.removeAttribute('aria-current'); });
   $('#nav-back').disabled = !backStack.length;
   $('#nav-next-label').textContent = pages[nextPage()];
   $('#nav-next').setAttribute('aria-label', 'Next: ' + pages[nextPage()]);
@@ -28,12 +31,13 @@ function show(page, back=false) {
   workspaceRequest++;
   document.querySelectorAll('.screen').forEach(node => node.classList.toggle('active', node.id === page));
   document.querySelectorAll('.nav [data-screen]').forEach(node => {
-    node.classList.toggle('active', node.dataset.screen === page);
-    if (node.dataset.screen === page) node.setAttribute('aria-current','page'); else node.removeAttribute('aria-current');
+    node.classList.toggle('active', node.dataset.screen === (page === 'inventory' ? 'workspace' : page));
+    if (node.dataset.screen === (page === 'inventory' ? 'workspace' : page)) node.setAttribute('aria-current','page'); else node.removeAttribute('aria-current');
   });
   if (page === 'signals') loadSignals();
   if (page === 'api' && !docsLoaded) loadDocs();
   if (page === 'workspace' || page === 'access') loadPharmacy();
+  if (page === 'inventory') loadInventory();
   history.replaceState(null, '', '#' + page);
   scrollTo(0, 0);
   updateNavigation();
@@ -56,7 +60,7 @@ async function signOut() {
   try {
     const response = await fetch('/api/v1/logout', {method:'POST'});
     if (!response.ok && response.status !== 401) throw Error('Sign out failed. Try again.');
-    setSignedIn(false); $('#pharmacy-content').replaceChildren(); show('access');
+    setSignedIn(false); inventoryLoad++; inventoryItems = []; $('#inventory-content').replaceChildren(); $('#pharmacy-content').replaceChildren(); show('access');
   } catch (error) { alert(error.message); }
 }
 function scoreList(outputs) {
@@ -261,14 +265,14 @@ const stockPath = tour.querySelector('#tour-stock-path');
 const stockPoint = tour.querySelector('#tour-stock-point');
 const stockLength = stockPath.getTotalLength();
 const bars = [...tour.querySelectorAll('.tour-bars i')];
-const tourStops = [0, 2200, 5600, 9700, 14500];
-const tourEmail = 'demo_pharmacy';
-const stockDays = [132,116,100,85,69,57,44,30,15,0];
-const stockCoords = [[28,38],[63,54],[98,69],[133,83],[168,99],[203,111],[238,123],[273,136],[308,149],[343,164]];
+const tourStops = [0, 1800, 5000, 9500, 14000];
+const tourBarcode = 'DEMO-AMOX-500';
+const stockDays = [132,128,125,122,119,115,112,108,104,98];
+const stockCoords = [[28,38],[84,42],[140,45],[196,48],[252,51],[308,55],[364,58],[420,62],[476,66],[532,72]];
 const cursorFrames = [
-  [[0,[.45,.16]],[1500,'#tour-open-workspace'],[2200,'#tour-open-workspace']],
-  [[0,[.46,.14]],[500,'#tour-email'],[1800,'#tour-email'],[1950,'#tour-password'],[2750,'#tour-password'],[3100,'#tour-submit'],[3400,'#tour-submit']],
-  [[0,[.46,.12]],[650,'#tour-sales-button'],[1100,'#tour-sales-button'],[1600,'#tour-inventory-button'],[2050,'#tour-inventory-button'],[2650,'#tour-train-button'],[4100,'#tour-train-button']],
+  [[0,[.45,.16]],[1250,'#tour-open-workspace'],[1800,'#tour-open-workspace']],
+  [[0,[.46,.14]],[550,'#tour-sales-button'],[1350,'#tour-sales-button'],[2100,'#tour-train-button'],[3200,'#tour-train-button']],
+  [[0,[.46,.12]],[600,'#tour-scan-button'],[1300,'#tour-barcode'],[2400,'#tour-barcode'],[3400,'#tour-matched-row'],[4500,'#tour-matched-row']],
   [[0,[.45,.14]],[1400,'#tour-stock-svg']]
 ];
 let tourTime = 0, tourIndex = -1, tourPlaying = !matchMedia('(prefers-reduced-motion: reduce)').matches, tourVisible = false, lastTourFrame = 0, tourFrame;
@@ -289,8 +293,8 @@ function renderTour() {
     tourIndex = index;
     tourStages.forEach((stage, i) => stage.setAttribute('aria-hidden', String(i !== index)));
     tourSteps.forEach((step, i) => step.setAttribute('aria-pressed', String(i === index)));
-    tour.querySelector('#tour-url').textContent = ['pulse / home','pulse / sign up','pulse / workspace','pulse / results'][index];
-    tour.querySelector('#tour-nav-action').textContent = index ? 'Account' : 'Sign up';
+    tour.querySelector('#tour-url').textContent = ['pulse / home','pulse / workspace','pulse / inventory','pulse / workspace'][index];
+    tour.querySelector('#tour-nav-action').textContent = index ? 'Sign out' : 'Sign in';
   }
   const local = tourTime - tourStops[index];
   tourSteps[index].style.setProperty('--step-progress', local / (tourStops[index + 1] - tourStops[index]));
@@ -302,8 +306,8 @@ function renderTour() {
   const progress = start === end ? 1 : clamp((local - start[0]) / (end[0] - start[0]));
   const ease = progress * progress * (3 - 2 * progress);
   let x = from.x + (to.x - from.x) * ease, y = from.y + (to.y - from.y) * ease;
-  if (index === 3 && tourTime >= 11600) {
-    const day = clamp((tourTime - 11600) / 1800, 0, 1) * 9;
+  if (index === 3 && tourTime >= 11300) {
+    const day = clamp((tourTime - 11300) / 1900, 0, 1) * 9;
     const whole = Math.floor(day), fraction = day - whole;
     const left = stockCoords[whole], right = stockCoords[Math.min(9, whole + 1)];
     const chartX = left[0] + (right[0] - left[0]) * fraction;
@@ -312,29 +316,31 @@ function renderTour() {
     const viewport = tourViewport.getBoundingClientRect();
     x = screen.x - viewport.left; y = screen.y - viewport.top;
     stockPoint.setAttribute('cx', chartX); stockPoint.setAttribute('cy', chartY);
-    tour.querySelector('#tour-stock-tooltip').textContent = `Day ${Math.round(day)} · ${stockDays[Math.round(day)]} units`;
+    tour.querySelector('#tour-stock-tooltip').textContent = `History day ${Math.round(day)+1} · ${stockDays[Math.round(day)]} bottles`;
   } else if (index === 3) {
     stockPoint.setAttribute('cx', '28'); stockPoint.setAttribute('cy', '38');
-    tour.querySelector('#tour-stock-tooltip').textContent = 'On hand · 132 units';
+    tour.querySelector('#tour-stock-tooltip').textContent = 'Closing stock · 132 bottles';
   }
   setCursor(x, y);
-  tourCursor.classList.toggle('is-clicking', [1900,2700,4200,5350,6400,7350,8400].some(t => Math.abs(tourTime - t) < 110));
-  tour.querySelector('#tour-email').textContent = index === 1 ? tourEmail.slice(0, clamp(Math.floor((tourTime - 2900) / 60), 0, tourEmail.length)) : '';
-  tour.querySelector('#tour-password').textContent = index === 1 ? '•'.repeat(clamp(Math.floor((tourTime - 4320) / 48), 0, 12)) : '';
-  tour.querySelector('#tour-sales-name').textContent = index === 2 && tourTime >= 6600 ? 'sample_sales.csv ✓' : 'No file selected';
-  tour.querySelector('#tour-inventory-name').textContent = index === 2 && tourTime >= 7550 ? 'Stock columns included ✓' : 'No file selected';
-  tour.querySelector('#tour-train-status').textContent = index !== 2 || tourTime < 8400 ? 'Ready when sales history is selected.' : tourTime < 8800 ? 'Preparing example results...' : tourTime < 9200 ? 'Loading example plan...' : 'Building your plan…';
-  tour.querySelector('#tour-progress').style.width = index === 2 ? clamp((tourTime - 8500) / 1150) * 100 + '%' : '0%';
-  const reveal = index === 3 ? clamp((tourTime - 9900) / 1400) : 0;
+  tourCursor.classList.toggle('is-clicking', [1450,2600,3900,5650,6550].some(t => Math.abs(tourTime - t) < 110));
+  tour.querySelector('#tour-sales-name').textContent = index === 1 && local >= 1000 ? 'sales_history.csv · selected' : 'No file selected';
+  tour.querySelector('#tour-train-status').textContent = index === 1 && local >= 2200 ? 'Preparing illustrative demand estimates…' : 'Ready when sales history is selected.';
+  tour.querySelector('#tour-progress').style.width = index === 1 ? clamp((local - 2200) / 850) * 100 + '%' : '0%';
+  const matched = index === 2 && local >= 2200;
+  tour.querySelector('#tour-barcode').textContent = index === 2 && local >= 1500 ? tourBarcode : '';
+  tour.querySelector('#tour-match-status').textContent = matched ? 'Saved medicine matched' : 'Waiting for a scan…';
+  tour.querySelector('#tour-match-detail').textContent = matched ? 'Amoxicillin · 500 mg · bottles. Review the quantity before saving.' : 'Scan a package to find its saved details.';
+  tour.querySelector('#tour-matched-row').classList.toggle('is-matched', matched);
+  const reveal = index === 3 ? clamp((tourTime - 9700) / 1200) : 0;
   stockPath.style.strokeDasharray = stockLength;
   stockPath.style.strokeDashoffset = stockLength * (1 - reveal);
   tour.querySelector('.tour-stock-fill').style.opacity = reveal;
-  bars.forEach((bar, i) => bar.style.setProperty('--bar-progress', clamp((tourTime - 10200 - i * 55) / 500)));
-  tour.querySelector('#tour-demand-number').textContent = String(Math.round(214 * reveal));
-  tour.querySelector('#tour-order-number').textContent = String(Math.round(26 * clamp((tourTime - 11000) / 850)));
+  bars.forEach((bar, i) => bar.style.setProperty('--bar-progress', clamp((tourTime - 10000 - i * 55) / 500)));
+  tour.querySelector('#tour-demand-number').textContent = String(Math.round(210 * reveal));
+  tour.querySelector('#tour-order-number').textContent = String(Math.round(157 * clamp((tourTime - 11000) / 850)));
 }
 function tourTick(now) {
-  if (lastTourFrame) tourTime = (tourTime + Math.min(now - lastTourFrame, 80)) % 14500;
+  if (lastTourFrame) tourTime = (tourTime + Math.min(now - lastTourFrame, 80)) % tourStops.at(-1);
   lastTourFrame = now;
   renderTour();
   tourFrame = requestAnimationFrame(tourTick);
@@ -350,7 +356,7 @@ function syncTour() {
 }
 tourSteps.forEach((step, index) => step.addEventListener('click', () => {
   tourPlaying = false;
-  tourTime = Math.min(tourStops[index + 1] - 100, tourStops[index] + [1950, 3200, 3800, 3900][index]);
+  tourTime = Math.min(tourStops[index + 1] - 100, tourStops[index] + [1450, 2900, 4000, 4100][index]);
   renderTour(); syncTour();
 }));
 tourToggle.addEventListener('click', () => { tourPlaying = !tourPlaying; syncTour(); });
@@ -407,4 +413,4 @@ document.querySelectorAll('.faq-question').forEach(button => button.addEventList
   item.querySelector('.faq-panel').setAttribute('aria-hidden', String(!open));
 }));
 show(location.hash.slice(1) || 'home');
-if (!['workspace','access'].includes(currentPage)) { const request = workspaceRequest; api('/plan').then(() => { if (request === workspaceRequest) setSignedIn(true); }).catch(() => { if (request === workspaceRequest) setSignedIn(false); }); }
+if (!['workspace','access','inventory'].includes(currentPage)) { const request = workspaceRequest; api('/plan').then(() => { if (request === workspaceRequest) setSignedIn(true); }).catch(() => { if (request === workspaceRequest) setSignedIn(false); }); }

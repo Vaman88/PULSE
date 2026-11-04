@@ -59,3 +59,28 @@ and its saved-model training design.
 
 The ratings and article counts are research outputs. They are not disease
 incidence, probabilities, clinical advice, or purchasing instructions.
+
+## Inventory screen
+
+The Inventory tab in Workspace stores medicines and balances per account in
+`backend/data/inventory.sqlite3`. It supports add/edit, archive/restore, search,
+stock filters, sorting, pagination and CSV export. Each medicine keeps its original
+stock unit. Back up the inventory database with the account store. Barcode scans,
+AI-assisted imports, batch expiry and automatic forecast updates are future work.
+
+The interface and API baseline match the deployed `pulseintelligence.tech` version
+(`codex/repo-sync`); the requested repository's `origin/main` has a different frontend.
+Focused checks: `python -m pytest backend/test_inventory.py -q`.
+
+### Handheld barcode input
+
+Select **Scan barcode** in Inventory, focus the scan field, and scan with a USB
+or Bluetooth reader in HID keyboard mode. Configure an Enter suffix, or use
+**Read barcode**. Use a 2D imager that supports GS1 DataMatrix for medicine codes.
+Pulse normalizes UPC/EAN/GTIN product codes and extracts a leading GS1 AI (01)
+GTIN, so different serial/lot payloads resolve to the same saved package.
+Known codes open the saved medicine; unknown codes can link to an existing
+medicine without a code or start a new entry with the code already filled in.
+Nothing is saved until staff confirm the form. This does not query an external
+product catalog, decode lot/expiry fields, or increment stock automatically.
+Parser checks: `node frontend/barcode.test.cjs`.

@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend.demand import forecast
+from backend.inventory import Medicine, inventory
 from backend import intake
 from backend.runner import read_kind
 from model.prototype2.model import TARGETS
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "backend" / "data"
 ACCOUNTS = DATA / "accounts.json"
 PLANS = DATA / "plans.json"
+INVENTORY = DATA / "inventory.sqlite3"
 app = FastAPI(title="PULSE prototype signals", version="1.0")
 
 
@@ -264,6 +266,21 @@ async def upload(request: Request):
     plans[name] = final
     save(PLANS, plans)
     return final
+
+
+@app.get("/api/v1/inventory")
+def list_inventory(request: Request):
+    return {"items": inventory(INVENTORY, account(request))}
+
+
+@app.post("/api/v1/inventory", status_code=201)
+def add_medicine(medicine: Medicine, request: Request):
+    return inventory(INVENTORY, account(request), medicine)
+
+
+@app.put("/api/v1/inventory/{item_id}")
+def edit_medicine(item_id: str, medicine: Medicine, request: Request):
+    return inventory(INVENTORY, account(request), medicine, item_id)
 
 
 app.mount("/public", StaticFiles(directory=ROOT / "frontend" / "public"), name="public")
