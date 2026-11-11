@@ -8,39 +8,83 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/public/style.css">
+  <link rel="stylesheet" href="/public/style.css?v=workspace4">
 </head>
-<body><div class="frame"><header class="top"><div class="nav-motion"><a class="brand" href="#home" data-screen="home" aria-label="PULSE home"><span class="brand-mark" aria-hidden="true"><img src="public/pulse-supply-mark.svg" alt="" width="56" height="28"></span>PULSE<i></i></a><button class="nav-back" id="nav-back" type="button" aria-label="Go back" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><nav class="nav" aria-label="Main navigation"><span class="nav-indicator" aria-hidden="true"></span><button class="active" data-screen="home">Home</button><button data-screen="workspace">Workspace</button><button data-screen="signals">Signals</button><button data-screen="api">API</button><button data-screen="access">Sign in</button></nav><button class="nav-next" id="nav-next" type="button"><span class="nav-next-copy"><small id="nav-next-caption">Next</small><span id="nav-next-label">Workspace</span></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div></header><main><section class="screen active" id="home"><div class="hero"><div class="hero-copy"><h1>Local care.<br><span>A clearer plan.</span></h1><p class="lead">Explore a focused 14-day pharmacy plan and see which medicines may need attention.</p><div class="actions"><a class="btn" href="#quick-tour">Watch the 14-second tour ↓</a><button class="btn secondary" data-go="workspace">Open workspace ↗</button></div></div></div>
-<div class="quick-tour" id="quick-tour" aria-label="Fourteen-second PULSE website walkthrough">
-  <div class="tour-rail"><strong>See PULSE in 14 seconds</strong></div>
-  <div class="tour-window">
-    <div class="tour-browser"><span class="tour-browser-dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="tour-url">pulse / home</span><span class="tour-browser-status">ILLUSTRATIVE REPLAY</span></div>
-    <div class="tour-site-nav"><strong>PULSE<i>•</i></strong><span><span>Home</span><span>Workspace</span><b id="tour-nav-action">Sign up</b></span></div>
-    <div class="tour-viewport">
-      <section class="tour-scene tour-landing" data-tour-stage="0" aria-hidden="false"><div><h2>Local care.<br>A clearer plan.</h2><p>Turn sales and inventory history into a focused 14-day plan.</p><span class="tour-action" id="tour-open-workspace">Create a workspace ↗</span></div><div class="tour-landing-art" aria-hidden="true"><svg viewBox="0 0 330 240" fill="none"><path d="M20 170c27-47 44-38 70-65s63-77 119-58 91 80 99 128" stroke="#247783" stroke-width="3"/><path d="M20 176c33-44 57-34 85-63s61-58 111-42 68 65 94 88" stroke="#4f9ba4" stroke-width="2"/><path d="M20 184c29-31 69-21 96-49s69-42 103-28 62 31 89 48" stroke="#85bec5" stroke-width="2"/><circle cx="202" cy="70" r="8" fill="#f7fbfb" stroke="#267782" stroke-width="3"/><circle cx="115" cy="134" r="5" fill="#f7fbfb" stroke="#267782" stroke-width="2"/></svg></div></section>
-      <section class="tour-scene tour-signup" data-tour-stage="1" aria-hidden="true"><div class="tour-signup-layout"><div><h2>Make room<br>for clarity.</h2><p>Sign in to your private workspace.</p></div><div class="tour-signup-card"><h3>Create your workspace.</h3><label class="tour-field">Username<div class="tour-input" id="tour-email"></div></label><label class="tour-field">Password<div class="tour-input" id="tour-password"></div></label><div class="tour-action" id="tour-submit">Create my workspace →</div><p class="tour-fine">Visual replay · no account is created.</p></div></div></section>
-      <section class="tour-scene tour-workspace" data-tour-stage="2" aria-hidden="true"><h2>Build your demand plan.</h2><p>Explore a sample 14-day outlook.</p><div class="tour-uploads"><div class="tour-upload"><h3>Daily sales history</h3><p>CSV: date, drug_name, unit, starting_stock, quantity_sold.</p><span class="tour-action" id="tour-sales-button">Choose sales CSV</span><span class="tour-file-name" id="tour-sales-name">No file selected</span></div><div class="tour-upload"><h3>Inventory columns</h3><p>Optional current_stock and expected_delivery in the same CSV.</p><span class="tour-action" id="tour-inventory-button">Include stock columns</span><span class="tour-file-name" id="tour-inventory-name">No file selected</span></div></div><div class="tour-train"><span class="tour-action" id="tour-train-button">View example plan</span><small id="tour-train-status">Ready when both files are selected.</small></div><div class="tour-progress-track" aria-hidden="true"><span id="tour-progress"></span></div></section>
-      <section class="tour-scene tour-plan" data-tour-stage="3" aria-hidden="true">
-        <div class="tour-plan-intro"><div><span class="tour-kicker">Illustrative results · Oct 11, 2026</span><h2>Demand &amp; inventory.</h2></div><span class="tour-plan-status">14-day outlook</span></div>
-        <div class="tour-plan-graphs">
-          <div class="tour-stock-graph"><div class="tour-graph-heading"><strong>Projected stock</strong><span>Amoxicillin · 500 mg</span></div>
-            <svg id="tour-stock-svg" viewBox="0 0 560 206" role="img" aria-label="Sample stock falls from 132 units to zero on day 9, then rises when a delivery is counted on day 11">
-              <path class="tour-graph-grid" d="M28 38H532M28 101H532M28 164H532"/><text x="2" y="42">132</text><text x="16" y="169">0</text>
-              <path class="tour-stock-fill" d="M28 38 63 54 98 69 133 83 168 99 203 111 238 123 273 136 308 149 343 164 378 164 413 77 448 94 483 109 532 128V164H28Z"/>
-              <path id="tour-stock-path" class="tour-stock-path" d="M28 38 63 54 98 69 133 83 168 99 203 111 238 123 273 136 308 149 343 164 378 164 413 77 448 94 483 109 532 128"/>
-              <path class="tour-delivery-line" d="M413 31V164"/><circle id="tour-stock-point" cx="28" cy="38" r="6"/>
-              <text x="28" y="195">ON HAND</text><text x="318" y="195">DAY 9</text><text x="437" y="195">DAY 14</text>
-            </svg><div class="tour-graph-caption"><span id="tour-stock-tooltip">On hand · 132 units</span><span>Delivery counted Oct 22</span></div>
-          </div>
-          <div class="tour-demand-graph"><div class="tour-graph-heading"><strong>Daily demand</strong><span>14-day sample</span></div><div class="tour-demand-total"><strong id="tour-demand-number">214</strong><span>units projected</span></div><div class="tour-bars" aria-hidden="true"><i style="--bar-height:69%"></i><i style="--bar-height:64%"></i><i style="--bar-height:73%"></i><i style="--bar-height:78%"></i><i style="--bar-height:63%"></i><i style="--bar-height:70%"></i><i style="--bar-height:75%"></i><i style="--bar-height:85%"></i><i style="--bar-height:76%"></i><i style="--bar-height:89%"></i><i style="--bar-height:81%"></i><i style="--bar-height:92%"></i><i style="--bar-height:74%"></i><i style="--bar-height:83%"></i></div><div class="tour-bars-axis"><span>OCT 12</span><span>OCT 25</span></div></div>
-        </div>
-        <div class="tour-plan-summary"><span><b>132</b> on hand</span><span><b>Oct 20</b> projected stockout</span><strong><b id="tour-order-number">26</b> units suggested for review</strong></div>
-      </section>
-      <div class="tour-cursor" id="tour-cursor" aria-hidden="true"><svg viewBox="0 0 28 36" fill="none"><path d="M2 2v28l7-7 5 11 5-2-5-10h11L2 2Z" fill="#fff" stroke="#142421" stroke-width="2" stroke-linejoin="round"/></svg></div>
+<body><div class="frame"><header class="top"><div class="nav-motion"><a class="brand" href="#home" data-screen="home" aria-label="PULSE home"><span class="brand-mark" aria-hidden="true"><img src="public/pulse-supply-mark.svg" alt="" width="56" height="28"></span>PULSE<i></i></a><button class="nav-back" id="nav-back" type="button" aria-label="Go back" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><nav class="nav" aria-label="Main navigation"><span class="nav-indicator" aria-hidden="true"></span><button class="active" data-screen="home">Home</button><button data-screen="workspace">Workspace</button><button data-screen="signals">Signals</button><button data-screen="api">API</button><button data-screen="access">Sign in</button></nav><button class="nav-next" id="nav-next" type="button"><span class="nav-next-copy"><small id="nav-next-caption">Next</small><span id="nav-next-label">Workspace</span></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div></header><main><section class="screen active" id="home"><div class="hero"><div class="hero-copy"><h1>Local care.<br><span>A clearer plan.</span></h1><p class="lead">Explore a focused 14-day pharmacy plan and see which medicines may need attention.</p><div class="actions"><a class="btn" href="#quick-tour">Watch the product tour ↓</a><button class="btn secondary" data-go="workspace">Open workspace ↗</button></div></div></div>
+<div class="quick-tour" id="quick-tour">
+  <p class="tour-sr">Product demo: a pharmacy uploads one sales CSV. PULSE checks the columns, matches dates to public-health signals, and fits a demand model. The plan readout flags Metformin ER 500 mg, with 735 tablets to review over 7 days. The medicine detail shows stock, sales and a 14-day demand outlook, then the order list. The Signals tab shows disease ratings from 1 to 10 alongside sample news. All values are synthetic.</p>
+  <div class="tour-stage">
+    <div class="tour-halo" aria-hidden="true"></div>
+    <div class="tour-chips">
+      <span class="tour-chip tour-chip-mark" aria-hidden="true"><img src="public/pulse-supply-mark.svg" alt="" width="30" height="15"></span>
+      <span class="tour-chip" id="tc-upload" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 14V4M6 8l4-4 4 4M4 16h12"/></svg>Upload CSV</span>
+      <span class="tour-chip tour-chip-wide" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 4v10M6 10l4 4 4-4M4 16h12"/></svg>CSV template</span>
+      <span class="tour-chip" id="tc-reset" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4 10a6 6 0 1 0 2-4.5M4 4v3h3"/></svg>Start over</span>
     </div>
+    <div class="tour-window" aria-hidden="true">
+      <div class="tour-browser"><span class="tour-browser-dots"><i></i><i></i><i></i></span><span class="tour-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7"/></svg><span id="tour-url">pulse / workspace</span></span><span></span></div>
+      <div class="tour-appbar"><strong class="tour-logo">PULSE<i>•</i></strong>
+        <nav class="tour-tabs-app"><span class="is-on" id="ta-work">Workspace</span><span>Medications</span><span id="ta-signals">Signals</span><span>API</span><i class="tour-tab-line" id="tour-tab-line"></i></nav>
+        <span class="tour-account"><span class="tour-select">Demo Pharmacy<svg viewBox="0 0 12 12"><path d="m3 4.5 3 3 3-3"/></svg></span><span class="tour-avatar">DP</span></span>
+      </div>
+      <div class="tour-body">
+        <section class="tour-view" id="tv-work">
+          <div class="tour-page-head"><div><h3>Build your demand plan</h3><p>One CSV of daily sales and stock. Estimates for the next 7 and 14 days.</p></div><div class="tour-head-pills"><span class="tour-select">7 / 14 days<svg viewBox="0 0 12 12"><path d="m3 4.5 3 3 3-3"/></svg></span><span class="tour-pill-dark">One CSV</span></div></div>
+          <div class="tour-cols">
+            <div class="tour-left">
+              <div class="tour-frame">
+                <div class="tour-lpane" id="tl-empty"><span class="tour-drop-icon"><svg viewBox="0 0 20 20"><path d="M10 14V4M6 8l4-4 4 4M4 16h12"/></svg></span><strong>Drop your sales CSV</strong><small>CSV only · up to 5 MB</small></div>
+                <div class="tour-lpane" id="tl-upload"><div class="tour-file-card"><span class="tour-file-icon">CSV</span><span><b>pharmacy_sales.csv</b><small>48.2 KB · 186 rows</small></span></div><div class="tour-upload-bar"><span><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7"/></svg>Secure upload</span><b id="tl-upload-pct">0%</b><i><em id="tl-upload-fill"></em></i></div></div>
+                <div class="tour-lpane" id="tl-preview">
+                  <div class="tour-sheet">
+                    <div class="tour-sheet-row tour-sheet-head"><span>date</span><span>drug_name</span><span>unit</span><span>starting_stock</span><span>quantity_sold</span></div>
+                    <div class="tour-sheet-body" id="tour-sheet-body"></div>
+                    <i class="tour-scan" id="tour-scan"></i>
+                    <i class="tour-focus" id="tour-focus"><b>Metformin ER · needs attention</b></i>
+                  </div>
+                  <span class="tour-tag" id="tour-tag"><i></i><span id="tour-tag-text">Reading</span></span>
+                </div>
+              </div>
+              <div class="tour-frame-foot"><span id="tl-file">No file yet</span><span id="tl-state"></span></div>
+            </div>
+            <div class="tour-right">
+              <div class="tour-pane" id="tr-empty"><div class="tour-panel-head is-muted"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="m7 10 2 2 4-4"/></svg>Demand plan</div><p>Add a CSV to get 7- and 14-day estimates.</p><div class="tour-skeleton"><i></i><i></i><i></i><i></i></div><div class="tour-tip">Tip: aim for 60+ days of history per medicine.</div></div>
+              <div class="tour-pane" id="tr-uploading"><div class="tour-panel-head is-muted"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="m7 10 2 2 4-4"/></svg>Demand plan</div><p>Uploading your CSV…</p><div class="tour-skeleton is-shimmer"><i></i><i></i><i></i><i></i></div></div>
+              <div class="tour-pane" id="tr-check"><div class="tour-panel-head"><svg viewBox="0 0 20 20"><path d="M4 7V4h3M13 4h3v3M16 13v3h-3M7 16H4v-3"/></svg>Checking your file…</div><p>Reading sales history before fitting demand.</p>
+                <ul class="tour-checks"><li data-check="0"><i></i><span>Required columns</span><b>Clear</b></li><li data-check="1"><i></i><span>Dates match PULSE signals</span><b>31 dates</b></li><li data-check="2"><i></i><span>Demand model</span><b>Fitted</b></li></ul>
+                <div class="tour-meter"><span>Model</span><span id="tour-meter-count">0 / 3</span><i><em id="tour-meter-fill"></em></i></div></div>
+              <div class="tour-pane" id="tr-readout"><div class="tour-panel-head"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="m7 10 2 2 4-4"/></svg>Plan readout</div>
+                <div class="tour-readout" id="tr-big"><div><small>Needs attention</small><strong>Metformin ER 500 mg</strong><span class="tour-flags"><em class="is-warn">Demand exceeds on-hand</em><em>31 dates matched</em></span></div><div class="tour-big"><small>Purchase · 7 days</small><b id="tour-big-number">0</b><span>tablets to review</span></div></div>
+                <div class="tour-others"><small>Also needs attention</small><div data-bar="54"><span>Metformin 500 mg</span><b>396</b><i><em></em></i></div><div data-bar="47"><span>Sertraline 50 mg</span><b>348</b><i><em></em></i></div><div data-bar="46.5"><span>Atorvastatin 20 mg</span><b>342</b><i><em></em></i></div></div>
+                <div class="tour-next" id="tour-next"><small>What to do next</small>Open the medicine, check the outlook, then review the order list.</div></div>
+              <div class="tour-pane" id="tr-detail"><div class="tour-panel-head"><svg viewBox="0 0 20 20"><path d="M3 16h14M5 13l3-4 3 2 4-6"/></svg>Metformin ER 500 mg<em class="tour-risk-pill">Needs attention</em></div>
+                <div class="tour-tabs-mini"><span id="td-tab-chart" class="is-on">Stock &amp; demand</span><span id="td-tab-order">Order list</span><span>Context</span></div>
+                <div class="tour-tabpane" id="td-chart"><div class="tour-legend"><span class="is-stock">Closing stock</span><span class="is-sales">Daily sales</span><span class="is-demand">Est. demand</span></div><svg class="tour-chart" id="tour-chart" viewBox="0 0 520 210"></svg></div>
+                <div class="tour-tabpane" id="td-order"><small class="tour-sub">Purchase estimates · 7 days</small><ol class="tour-order-list"><li><i>1</i><span>Metformin ER 500 mg</span><b>735</b></li><li><i>2</i><span>Metformin 500 mg</span><b>396</b></li><li><i>3</i><span>Sertraline 50 mg</span><b>348</b></li></ol><div class="tour-note"><b>Before ordering</b>Estimates already count 400 incoming tablets. Confirm quantities with a qualified pharmacist.</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="tour-view" id="tv-signals">
+          <div class="tour-page-head"><div><h3>Public health signals</h3><p>Model ratings built from CIDRAP articles and openFDA shortage records.</p></div><div class="tour-head-pills"><span class="tour-select">1 week<svg viewBox="0 0 12 12"><path d="m3 4.5 3 3 3-3"/></svg></span><span class="tour-pill-dark">14 diseases</span></div></div>
+          <div class="tour-cols">
+            <div class="tour-left">
+              <div class="tour-frame tour-outlook"><div class="tour-outlook-head"><span>Disease</span><span>1-week rating</span></div><div id="ts-rows"></div><div class="tour-popover" id="ts-pop"><b>Influenza</b><span>1 week <strong>7</strong> / 10 · 2 weeks <strong>6</strong> / 10</span><small>A model rating, not a probability.</small></div></div>
+              <div class="tour-frame-foot"><span>Scale 1 (lowest) – 10 (highest)</span><span>Not probabilities</span></div>
+            </div>
+            <div class="tour-right">
+              <div class="tour-pane is-on"><div class="tour-panel-head"><svg viewBox="0 0 20 20"><path d="M4 4h12v12H4zM7 8h6M7 11h6M7 14h3"/></svg>Relevant news<em class="tour-new-pill">CIDRAP</em></div><p>Recent CIDRAP reporting matched to these diseases.</p>
+                <div class="tour-news"><article><small>CIDRAP · Nov 6</small><b>US measles total for 2026 tops 5,100 cases</b><span>Matched: Measles</span></article><article><small>CIDRAP · Nov 2</small><b>Yakima County, Washington, reports 2 more avian flu cases, 1 death</b><span>Matched: Avian influenza</span></article><article><small>CIDRAP · Oct 27</small><b>Global pertussis burden remains high despite decades of progress</b><span>Matched: Pertussis</span></article></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="tour-cursor" id="tour-cursor" aria-hidden="true"><svg viewBox="0 0 28 36" fill="none"><path d="M2 2v28l7-7 5 11 5-2-5-10h11L2 2Z" fill="#fff" stroke="#142421" stroke-width="2" stroke-linejoin="round"/></svg></div>
   </div>
-  <div class="tour-controls"><div class="tour-steps" role="group" aria-label="Walkthrough steps"><button class="tour-step" type="button" data-tour-step="0" aria-pressed="true"><span>01</span>Landing</button><button class="tour-step" type="button" data-tour-step="1" aria-pressed="false"><span>02</span>Sign up</button><button class="tour-step" type="button" data-tour-step="2" aria-pressed="false"><span>03</span>Add history</button><button class="tour-step" type="button" data-tour-step="3" aria-pressed="false"><span>04</span>Review plan</button></div><button class="tour-toggle" type="button" aria-label="Pause walkthrough">Pause</button></div>
-<p class="tour-disclosure">Illustrative replay with synthetic values. The real workspace processes one sales CSV on the server; forecasts are research estimates.</p></div>
+  <p class="tour-disclosure">Illustrative replay with synthetic values. The real workspace processes one sales CSV on the server; ratings and forecasts are research estimates, not clinical or purchasing advice.</p>
+</div>
 <div class="band editorial-features"><div class="wrap"><h2>Answers you can act on,<br>without the noise.</h2><p class="muted">Daily sales and current stock become a concise view of demand, purchase needs, and the signals behind them.</p>
 <div class="feature-list editorial-grid">
 <article class="editorial-card"><div class="card-art" aria-hidden="true"><svg viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet"><path class="art-rule" d="M22 42H338M22 92H338M22 142H338M22 192H338"/><path d="M22 172 66 158 110 166 154 112 198 127 242 93 286 106 338 54V196H22Z" fill="#3d919b" opacity=".18"/><path d="M22 172 66 158 110 166 154 112 198 127 242 93 286 106 338 54" fill="none" stroke="#175964" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><g fill="#f3f8f9" stroke="#175964" stroke-width="3"><circle cx="154" cy="112" r="6"/><circle cx="242" cy="93" r="6"/><circle cx="338" cy="54" r="6"/></g><text x="22" y="28">DEMAND / 14 DAYS</text></svg></div><div class="card-copy"><h3>Forecast each medication</h3><p>Estimate 7- and 14-day medication demand from your sales history and dated PULSE signals.</p><ul class="card-tags"><li>Past sales</li><li>Dated signals</li><li>7 &amp; 14 days</li></ul></div></article>
@@ -76,4 +120,4 @@
   <p class="rubric-note">Levels 1, 2, 4, and 10 are not defined in the available review notes. These descriptions summarize the review log; current model predictions and saved labels do not consistently follow the intended rubric.</p>
   <p class="rubric-source">Sources: dataset output review provenance; Arkansas scoring diagnostic.</p>
 </dialog>
-<script src="/live.js" defer></script></body></html>
+<script src="/live.js?v=workspace4" defer></script></body></html>

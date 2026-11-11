@@ -165,6 +165,46 @@ function inventoryChart(item) {
     <text x="54" y="343">${from}</text><text x="${x(asOf)}" y="343" text-anchor="middle">${escapeHTML(asOf)}</text><text x="736" y="343" text-anchor="end">${escapeHTML(until)}</text></svg></div>
     <figcaption>Observed history and estimated demand use separate scales. Missing history dates remain gaps. Forecasts hold the latest estimated daily rate; future sales and stock are not observations.</figcaption></figure>`;
 }
+const wsIcons = {
+  upload:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 14V4M6 8l4-4 4 4M4 16h12"/></svg>',
+  download:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v10M6 10l4 4 4-4M4 16h12"/></svg>',
+  signals:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16h14M5 13l3-4 3 2 4-6"/></svg>',
+  out:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5V3.5H4v13h8V15M9 10h8M14 7l3 3-3 3"/></svg>',
+  check:'<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m7 10 2 2 4-4"/></svg>',
+  news:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12v12H4zM7 8h6M7 11h6M7 14h3"/></svg>',
+  chart:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16h14M5 13l3-4 3 2 4-6"/></svg>',
+  search:'<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>'
+};
+function stockCover(item) { return item.demand_7d > 0 ? Math.max(0, Math.min(100, Math.round(item.current_stock / item.demand_7d * 100))) : 100; }
+function animateCounts(root) {
+  if (typeof requestAnimationFrame !== 'function' || typeof matchMedia !== 'function' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  root.querySelectorAll('[data-count]').forEach(node => {
+    const target = Number(node.dataset.count);
+    if (!Number.isFinite(target)) return;
+    let started = 0;
+    const step = now => {
+      if (!started) started = now;
+      const progress = Math.min(1, (now - started) / 900);
+      node.textContent = String(Math.round(target * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    node.textContent = '0';
+    requestAnimationFrame(step);
+  });
+}
+function planReadout(rec, risk) {
+  const head = `<div class="ws-panel-head">${wsIcons.check}<h2 id="readout-title">Plan readout</h2><span class="ws-tag"><i></i>Plan ready</span></div>`;
+  if (!risk.length) return `${head}<div class="ws-readout-main is-calm"><div><small class="ws-label">Needs attention</small><strong>${rec.length ? 'No medicines' : 'No medicines in this plan'}</strong><p>${rec.length ? `7-day estimated demand is within supplied on-hand stock for all ${rec.length} medicines.` : 'Reupload data to build estimates for your medicines.'}</p></div></div>`;
+  const top = risk[0], unit = escapeHTML(top.unit), others = risk.slice(1, 5);
+  return `${head}<div class="ws-readout-main"><div><small class="ws-label">Needs attention</small><strong>${escapeHTML(top.drug_name)}</strong><span class="ws-flags"><em class="is-warn">Demand exceeds on-hand</em><em>${top.expected_delivery ?? 0} ${unit} incoming</em></span><button class="ws-open" type="button" data-risk-index="0">Open stock &amp; demand <span aria-hidden="true">→</span></button></div>
+    <div class="ws-big"><small class="ws-label">Purchase · 7 days</small>${top.buy_7d == null ? '<b>Conditional</b>' : `<b data-count="${top.buy_7d}">${top.buy_7d}</b>`}<span>${unit} to review</span></div></div>
+    ${others.length ? `<div class="ws-others"><small class="ws-label">Also needs attention · on-hand stock covers</small>${others.map((r, i) => `<button type="button" data-risk-index="${i + 1}"><span>${escapeHTML(r.drug_name)}</span><b>${stockCover(r)}%</b><i aria-hidden="true"><em style="--w:${stockCover(r) / 100}"></em></i><small class="ws-sr"> of its 7-day estimated demand</small></button>`).join('')}${risk.length > 5 ? `<p class="ws-more">+ ${risk.length - 5} more in your medication list</p>` : ''}</div>` : ''}
+    <div class="ws-next"><small class="ws-label">What to do next</small>Open each medicine’s outlook, then review the order list before ordering.</div>`;
+}
+function orderList(risk) {
+  return `<small class="ws-label">Purchase estimates · medicines that need attention</small><ol class="ws-order-list">${risk.map((r, i) => `<li><i>${i + 1}</i><span>${escapeHTML(r.drug_name)}<small>${escapeHTML(r.unit)}</small></span><b>${r.buy_7d ?? 'Conditional'}<small>7 days</small></b><b class="is-quiet">${r.buy_14d ?? 'Conditional'}<small>14 days</small></b></li>`).join('')}</ol>
+    <div class="ws-note"><b>Before ordering</b>Estimates subtract on-hand stock and reported deliveries and include three safety-stock days. Check supplier timing and confirm quantities with a qualified pharmacist.</div>`;
+}
 async function loadWorkspaceNews() {
   const request = workspaceRequest, container = $('#workspace-news');
   try {
@@ -188,33 +228,61 @@ function renderPharmacy(el, plan, message='') {
     const attention = stockAtRisk(r), riskIndex = risk.indexOf(r);
     return `<tr${attention ? ' class="purchase-attention"' : ''}><th scope="row">${attention ? `<button class="medicine-link" type="button" data-risk-index="${riskIndex}">${escapeHTML(r.drug_name)}</button>` : `<strong>${escapeHTML(r.drug_name)}</strong>`}<small>${escapeHTML(r.unit)}</small>${attention ? '<span class="list-status">Demand exceeds on-hand</span>' : ''}</th><td>${r.current_stock ?? 'Not supplied'}</td><td>${r.expected_delivery ?? 0}</td><td>${r.demand_7d}</td><td>${r.demand_14d}</td><td class="purchase-value">${r.buy_7d ?? 'Conditional'}</td><td>${r.buy_14d ?? 'Conditional'}</td></tr>`;
   }).join('');
-  el.innerHTML = `<div class="workspace-heading"><div><p class="eyebrow">Your pharmacy workspace</p><h1>${hasPlan ? 'Demand &amp;<br>inventory' : 'A clearer plan<br>for local care.'}</h1><p class="muted">${hasPlan ? 'Review the medicines that need attention before your next order.' : 'Bring your sales and stock together to build your first demand plan.'}</p></div><div class="workspace-actions">${hasPlan ? '<button id="reupload-data" class="btn" type="button" aria-expanded="false" aria-controls="workspace-upload">Reupload data</button>' : ''}<button id="pharmacy-logout" class="btn secondary" type="button">Sign out</button></div></div>
-    ${message ? `<p class="status" role="status">${escapeHTML(message)}</p>` : ''}
-    ${hasPlan ? `<div class="stats"><div class="stat">Medications<strong>${rec.length}</strong></div><div class="stat">Need attention<strong>${risk.length}</strong></div><div class="stat">Demand outlook<strong>7 / 14 days</strong></div><div class="stat">Plan updated<strong>${escapeHTML(plan.generated_at?.slice(0,10) || 'Not recorded')}</strong></div></div>` : ''}
-    <section class="workspace-section workspace-news-section" aria-labelledby="workspace-news-title"><div class="workspace-section-head"><div><p class="eyebrow">Public health context</p><h2 id="workspace-news-title">Relevant news</h2></div><a href="#signals" data-go="signals" class="workspace-text-link">All public signals ↗</a></div><p class="muted">Recent disease-related reporting. These articles provide context, not proof of demand for a particular medicine.</p><div id="workspace-news" role="status"><p class="muted">Loading recent reporting…</p></div></section>
-    <section class="upload workspace-upload" id="workspace-upload" aria-labelledby="upload-title" ${hasPlan ? 'hidden' : ''}>
+  const news = `<section class="ws-panel workspace-news-section ws-rise" style="--d:3" aria-labelledby="workspace-news-title"><div class="ws-panel-head">${wsIcons.news}<h2 id="workspace-news-title">Relevant news</h2><a href="#signals" data-go="signals" class="workspace-text-link">All public signals ↗</a></div><p class="ws-panel-sub">Recent disease-related reporting. These articles provide context, not proof of demand for a particular medicine.</p><div id="workspace-news" class="ws-news" role="status"><p class="muted">Loading recent reporting…</p></div></section>`;
+  const upload = `<section class="ws-panel workspace-upload ws-rise" style="--d:2" id="workspace-upload" aria-labelledby="upload-title" ${hasPlan ? 'hidden' : ''}>
 <div class="upload-intro"><p class="eyebrow">Sales &amp; inventory</p><h2 id="upload-title">Start with your sales history.</h2><p class="muted">One CSV brings your daily sales and stock together to build your 7- and 14-day demand estimates.</p></div>
-<div class="upload-layout"><form id="pharmacy-upload"><fieldset><label class="csv-picker"><span class="upload-icon" aria-hidden="true">↑</span><strong id="upload-filename">Choose a CSV file</strong><span id="upload-filedetail">or drop it here · CSV only · up to 5 MB</span><input type="file" name="csv" accept=".csv,text/csv" aria-label="Choose sales and inventory CSV" aria-describedby="upload-status" required></label><div class="upload-actions"><button class="btn" type="submit" disabled>Generate forecast <span aria-hidden="true">→</span></button><a href="/public/sales-template.csv" download>Download CSV template ↓</a></div></fieldset><p id="upload-status" role="status" aria-live="polite">Choose a file to get started.</p><p class="upload-privacy">Your CSV and fitted model are discarded after processing. Your plan includes a saved 30-day stock and sales summary.</p></form>
-<aside class="csv-guide"><h3>A quick file check</h3><p>One row per medicine, per day. Aim for 60+ days of history; at least 20 dates must match available PULSE signals.</p><details><summary>View column guide</summary><h4>Required</h4><ul><li><code>date</code>: YYYY-MM-DD</li><li><code>drug_name</code>: medicine name</li><li><code>unit</code>: e.g. tablets; keep consistent</li><li><code>starting_stock</code>: stock before sales</li><li><code>quantity_sold</code>: daily units sold</li></ul><h4>Optional</h4><p><code>ending_stock</code>, <code>current_stock</code>, <code>expected_delivery</code></p><p>Use nonnegative quantities. Do not repeat a medicine/date pair or report sales above starting stock. The two template rows illustrate the format; replace them with your history.</p></details></aside></div></section>
-    ${hasPlan ? `<section class="workspace-section" id="inventory-risk" aria-labelledby="risk-title"><div class="workspace-section-head"><div><p class="eyebrow">Inventory focus</p><h2 id="risk-title">At-risk inventory</h2></div>${risk.length ? `<label class="risk-picker">Choose a medicine<select id="risk-medicine">${risk.map((r,i) => `<option value="${i}">${escapeHTML(r.drug_name)}</option>`).join('')}</select></label>` : ''}</div><p class="muted">${risk.length ? '7-day estimated demand exceeds on-hand stock for these medicines. Incoming deliveries are included in purchase estimates.' : 'No medicines have 7-day estimated demand above their supplied on-hand stock.'}</p>${risk.length ? `<article class="inventory-card" id="risk-chart">${inventoryChart(risk[0])}</article>` : ''}</section>
-    <section class="workspace-section" aria-labelledby="forecast-title"><div class="workspace-section-head"><div><p class="eyebrow">Next order</p><h2 id="forecast-title">Your medication list</h2></div><label class="medicine-search">Find a medicine<input type="search" id="medicine-search" placeholder="Search medicines"></label></div><p class="muted">Demand above on-hand stock comes first, then the largest 7-day purchase estimate (14-day estimate breaks ties). Quantities are in each medicine’s listed unit.</p><div class="table-scroll purchase-table-wrap"><table class="table purchase-table"><thead><tr><th scope="col">Medicine / unit</th><th scope="col">On hand</th><th scope="col">Incoming</th><th scope="col">Demand<small>7 days</small></th><th scope="col">Demand<small>14 days</small></th><th scope="col">Purchase<small>7 days</small></th><th scope="col">Purchase<small>14 days</small></th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted" id="medicine-empty" hidden>No medicines match your search.</p><p class="workspace-research-note">Experimental research estimates, not validated purchasing guidance. Purchase estimates include three safety-stock days and subtract on-hand stock and reported deliveries. Quantities across different units do not measure comparable clinical urgency. Check supplier timing and review the plan before ordering.</p></section>` : ''}`;
+<div class="upload-layout"><form id="pharmacy-upload"><fieldset><label class="csv-picker"><span class="upload-icon" aria-hidden="true">${wsIcons.upload}</span><strong id="upload-filename">Choose a CSV file</strong><span id="upload-filedetail">or drop it here · CSV only · up to 5 MB</span><input type="file" name="csv" accept=".csv,text/csv" aria-label="Choose sales and inventory CSV" aria-describedby="upload-status" required></label><div class="upload-actions"><button class="btn" type="submit" disabled>Generate forecast <span aria-hidden="true">→</span></button><a href="/public/sales-template.csv" download>Download CSV template ↓</a></div></fieldset><div class="ws-progress" aria-hidden="true"><i></i></div><p id="upload-status" role="status" aria-live="polite">Choose a file to get started.</p><p class="upload-privacy">Your CSV and fitted model are discarded after processing. Your plan includes a saved 30-day stock and sales summary.</p></form>
+<aside class="csv-guide"><h3>A quick file check</h3><p>One row per medicine, per day. Aim for 60+ days of history; at least 20 dates must match available PULSE signals.</p><ul class="ws-columns"><li><code>date</code><span>YYYY-MM-DD</span></li><li><code>drug_name</code><span>medicine name</span></li><li><code>unit</code><span>e.g. tablets; keep consistent</span></li><li><code>starting_stock</code><span>stock before sales</span></li><li><code>quantity_sold</code><span>daily units sold</span></li><li class="is-optional"><code>ending_stock</code><span>optional</span></li><li class="is-optional"><code>current_stock</code><span>optional</span></li><li class="is-optional"><code>expected_delivery</code><span>optional</span></li></ul><p class="ws-rules">Use nonnegative quantities. Do not repeat a medicine/date pair or report sales above starting stock. The two template rows illustrate the format; replace them with your history.</p></aside></div></section>`;
+  el.innerHTML = `<div class="ws">
+    <div class="ws-chips ws-rise">${hasPlan ? `<button id="reupload-data" class="ws-chip" type="button" aria-expanded="false" aria-controls="workspace-upload">${wsIcons.upload}<span>Reupload data</span></button>` : ''}<a class="ws-chip" href="/public/sales-template.csv" download>${wsIcons.download}<span>CSV template</span></a><a class="ws-chip" href="#signals" data-go="signals">${wsIcons.signals}<span>Public signals</span></a><button id="pharmacy-logout" class="ws-chip ws-chip-end" type="button">${wsIcons.out}<span>Sign out</span></button></div>
+    <div class="ws-window ws-rise" style="--d:1">
+      <div class="ws-head"><div><p class="eyebrow">Your pharmacy workspace</p><h1>${hasPlan ? 'Demand &amp; inventory' : 'Build your demand plan'}</h1><p class="muted">${hasPlan ? 'Review the medicines that need attention before your next order.' : 'Bring your sales and stock together to build your first demand plan.'}</p></div><div class="ws-pills"><span class="ws-pill">7 / 14-day outlook</span>${plan.illustrative ? '<span class="ws-pill is-demo">Demo · synthetic data</span>' : ''}</div></div>
+      ${plan.illustrative ? '<p class="status" role="status"><strong>Demo workspace:</strong> All inventory, sales history, and demand estimates shown here are synthetic examples for demonstration.</p>' : ''}
+      ${message ? `<p class="status" role="status">${escapeHTML(message)}</p>` : ''}
+      ${hasPlan ? `<div class="stats"><div class="stat">Medications<strong data-count="${rec.length}">${rec.length}</strong></div><div class="stat">Need attention<strong data-count="${risk.length}">${risk.length}</strong></div><div class="stat">Demand outlook<strong>7 / 14 days</strong></div><div class="stat">Plan updated<strong>${escapeHTML(plan.generated_at?.slice(0,10) || 'Not recorded')}</strong></div></div>
+      <div class="ws-cols"><section class="ws-panel ws-readout ws-rise" style="--d:2" id="plan-readout" aria-labelledby="readout-title">${planReadout(rec, risk)}</section>${news}</div>
+      ${upload}` : `${upload}${news}`}
+    </div>
+    ${hasPlan ? `<section class="ws-section ws-rise" style="--d:4" id="inventory-risk" aria-labelledby="risk-title"><div class="workspace-section-head"><div><p class="eyebrow">Inventory focus</p><h2 id="risk-title">At-risk inventory</h2></div>${risk.length ? `<label class="risk-picker">Choose a medicine<select id="risk-medicine">${risk.map((r,i) => `<option value="${i}">${escapeHTML(r.drug_name)}</option>`).join('')}</select></label>` : ''}</div><p class="muted">${risk.length ? '7-day estimated demand exceeds on-hand stock for these medicines. Incoming deliveries are included in purchase estimates.' : 'No medicines have 7-day estimated demand above their supplied on-hand stock.'}</p>${risk.length ? `<div class="ws-panel ws-detail"><div class="ws-tabs" role="tablist" aria-label="Medicine detail"><button type="button" role="tab" id="risk-tab-chart" aria-selected="true" aria-controls="risk-chart" tabindex="0">${wsIcons.chart}Stock &amp; demand</button><button type="button" role="tab" id="risk-tab-order" aria-selected="false" aria-controls="risk-order" tabindex="-1">Order list</button></div><article class="inventory-card" id="risk-chart" role="tabpanel" aria-labelledby="risk-tab-chart">${inventoryChart(risk[0])}</article><div class="ws-order" id="risk-order" role="tabpanel" aria-labelledby="risk-tab-order" hidden>${orderList(risk)}</div></div>` : ''}</section>
+    <section class="ws-section ws-rise" style="--d:5" aria-labelledby="forecast-title"><div class="workspace-section-head"><div><p class="eyebrow">Next order</p><h2 id="forecast-title">Your medication list</h2></div><label class="medicine-search">Find a medicine<span class="ws-search">${wsIcons.search}<input type="search" id="medicine-search" placeholder="Search medicines"></span></label></div><p class="muted">Demand above on-hand stock comes first, then the largest 7-day purchase estimate (14-day estimate breaks ties). Quantities are in each medicine’s listed unit.</p><div class="table-scroll purchase-table-wrap"><table class="table purchase-table"><thead><tr><th scope="col">Medicine / unit</th><th scope="col">On hand</th><th scope="col">Incoming</th><th scope="col">Demand<small>7 days</small></th><th scope="col">Demand<small>14 days</small></th><th scope="col">Purchase<small>7 days</small></th><th scope="col">Purchase<small>14 days</small></th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted" id="medicine-empty" hidden>No medicines match your search.</p><p class="workspace-research-note">Experimental research estimates, not validated purchasing guidance. Purchase estimates include three safety-stock days and subtract on-hand stock and reported deliveries. Quantities across different units do not measure comparable clinical urgency. Check supplier timing and review the plan before ordering.</p></section>` : ''}
+  </div>`;
   $('#pharmacy-logout').onclick=signOut;
-  const reupload = $('#reupload-data'), upload = $('#workspace-upload');
+  const reupload = $('#reupload-data'), uploadSection = $('#workspace-upload');
   if (reupload) reupload.onclick = () => {
-    upload.hidden = !upload.hidden;
-    reupload.setAttribute('aria-expanded', String(!upload.hidden));
-    reupload.textContent = upload.hidden ? 'Reupload data' : 'Cancel reupload';
-    if (!upload.hidden) { upload.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',block:'start'}); upload.querySelector('input').focus({preventScroll:true}); }
+    uploadSection.hidden = !uploadSection.hidden;
+    reupload.setAttribute('aria-expanded', String(!uploadSection.hidden));
+    reupload.querySelector('span').textContent = uploadSection.hidden ? 'Reupload data' : 'Cancel reupload';
+    if (!uploadSection.hidden) { uploadSection.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',block:'start'}); uploadSection.querySelector('input').focus({preventScroll:true}); }
   };
-  const selector = $('#risk-medicine');
-  if (selector) selector.onchange = () => { $('#risk-chart').innerHTML = inventoryChart(risk[Number(selector.value)]); };
+  const selector = $('#risk-medicine'), tabs = [$('#risk-tab-chart'), $('#risk-tab-order')].filter(Boolean);
+  const selectTab = tab => tabs.forEach(item => {
+    const active = item === tab;
+    item.setAttribute('aria-selected', String(active));
+    item.tabIndex = active ? 0 : -1;
+    $('#' + item.getAttribute('aria-controls')).hidden = !active;
+  });
+  tabs.forEach((tab, index) => {
+    tab.onclick = () => selectTab(tab);
+    tab.onkeydown = event => {
+      const next = {ArrowRight:index + 1, ArrowLeft:index - 1, Home:0, End:tabs.length - 1}[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      const target = tabs[(next + tabs.length) % tabs.length];
+      selectTab(target); target.focus();
+    };
+  });
+  if (selector) selector.onchange = () => { $('#risk-chart').innerHTML = inventoryChart(risk[Number(selector.value)]); if (tabs.length) selectTab(tabs[0]); };
+  const openRisk = index => {
+    selector.value = index; selector.onchange();
+    $('#inventory-risk').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',block:'start'});
+  };
+  const readout = $('#plan-readout');
+  if (readout && selector) readout.onclick = event => { const button = event.target.closest('[data-risk-index]'); if (button) openRisk(button.dataset.riskIndex); };
   const table = $('.purchase-table');
   if (table) {
     table.onclick = event => {
       const button = event.target.closest('[data-risk-index]');
-      if (!button) return;
-      selector.value = button.dataset.riskIndex; selector.onchange();
-      $('#risk-chart').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',block:'start'});
+      if (button) openRisk(button.dataset.riskIndex);
     };
     $('#medicine-search').oninput = event => {
       const query = event.target.value.trim().toLowerCase(), rows = [...table.tBodies[0].rows];
@@ -223,6 +291,7 @@ function renderPharmacy(el, plan, message='') {
     };
   }
   loadWorkspaceNews();
+  animateCounts(el);
   const form = $('#pharmacy-upload'), input = form.csv, button = form.querySelector('button'), status = $('#upload-status');
   input.onchange = () => {
     const file = input.files[0], error = uploadError(file);
@@ -252,89 +321,142 @@ function renderPharmacy(el, plan, message='') {
   };
 }
 const tour = document.querySelector('#quick-tour');
-const tourStages = [...tour.querySelectorAll('[data-tour-stage]')];
-const tourSteps = [...tour.querySelectorAll('[data-tour-step]')];
-const tourToggle = tour.querySelector('.tour-toggle');
+const tourStage = tour.querySelector('.tour-stage');
+const tourWindow = tour.querySelector('.tour-window');
 const tourCursor = tour.querySelector('#tour-cursor');
-const tourViewport = tour.querySelector('.tour-viewport');
-const stockPath = tour.querySelector('#tour-stock-path');
-const stockPoint = tour.querySelector('#tour-stock-point');
-const stockLength = stockPath.getTotalLength();
-const bars = [...tour.querySelectorAll('.tour-bars i')];
-const tourStops = [0, 2200, 5600, 9700, 14500];
-const tourEmail = 'demo_pharmacy';
-const stockDays = [132,116,100,85,69,57,44,30,15,0];
-const stockCoords = [[28,38],[63,54],[98,69],[133,83],[168,99],[203,111],[238,123],[273,136],[308,149],[343,164]];
-const cursorFrames = [
-  [[0,[.45,.16]],[1500,'#tour-open-workspace'],[2200,'#tour-open-workspace']],
-  [[0,[.46,.14]],[500,'#tour-email'],[1800,'#tour-email'],[1950,'#tour-password'],[2750,'#tour-password'],[3100,'#tour-submit'],[3400,'#tour-submit']],
-  [[0,[.46,.12]],[650,'#tour-sales-button'],[1100,'#tour-sales-button'],[1600,'#tour-inventory-button'],[2050,'#tour-inventory-button'],[2650,'#tour-train-button'],[4100,'#tour-train-button']],
-  [[0,[.45,.14]],[1400,'#tour-stock-svg']]
-];
-let tourTime = 0, tourIndex = -1, tourPlaying = !matchMedia('(prefers-reduced-motion: reduce)').matches, tourVisible = false, lastTourFrame = 0, tourFrame;
+const tq = selector => tour.querySelector(selector);
+const tqa = selector => [...tour.querySelectorAll(selector)];
+const reducedTour = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// One 22-second loop on a single clock. Times below are milliseconds from the start of the loop.
+const tourLength = 22000;
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-function cursorPosition(target) {
-  const viewport = tourViewport.getBoundingClientRect();
-  if (Array.isArray(target)) return { x: viewport.width * target[0], y: viewport.height * target[1] };
-  const rect = tour.querySelector(target).getBoundingClientRect();
-  return { x: rect.left - viewport.left + rect.width * (target === '#tour-stock-svg' ? .15 : .3), y: rect.top - viewport.top + rect.height * .5 };
+const easeOut = t => 1 - Math.pow(1 - clamp(t), 3);
+const span = (time, start, duration) => easeOut((time - start) / duration);
+const between = (time, start, end) => time >= start && time < end;
+// Synthetic rows; each closing stock matches the demo workspace (e.g. 482 - 141 = 341 on hand).
+const tourSheet = [
+  ['2026-11-04','Metformin ER 500 mg',482,141],['2026-11-04','Metformin 500 mg',188,98],['2026-11-04','Sertraline 50 mg',495,95],
+  ['2026-11-04','Atorvastatin 20 mg',134,134],['2026-11-04','Cetirizine 10 mg',125,87],['2026-11-04','Lisinopril 10 mg',672,60],
+  ['2026-11-03','Metformin ER 500 mg',620,138],['2026-11-03','Metformin 500 mg',287,99],['2026-11-03','Sertraline 50 mg',590,95]
+];
+const tourSignals = [['Influenza',7],['Measles',6],['Pertussis',5],['Avian influenza',4],['Dengue',3],['Mpox',2]];
+const tourStock = [560,470,1230,1100,975,850,720,590,470,1230,1100,975,850,720,590,470,1230,1100,975,850,720,590,470,1230,1100,975,850,720,590,470,341];
+const tourSales = [142,158,163,150,131,128,139,154,161,148,129,133,145,156,160,141,126,138,152,163,147,130,135,149,158,164,151,137,144,150,155];
+(function buildTour() {
+  tq('#tour-sheet-body').innerHTML = tourSheet.map(([date, name, start, sold]) => `<div class="tour-sheet-row"><span>${date}</span><span>${name}</span><span>tablet</span><span>${start}</span><span>${sold}</span></div>`).join('');
+  tq('#ts-rows').innerHTML = tourSignals.map(([name, score], i) => `<div class="tour-signal" id="ts-row-${i}" data-score="${score}"><span>${name}</span><i><em></em></i><b>0</b></div>`).join('');
+  const x = i => 34 + i * 340 / 30, stockY = v => 88 - v / 1300 * 66, salesY = v => 184 - v / 170 * 62;
+  const demandX = i => 386 + i * 120 / 13, demandY = salesY(148);
+  tq('#tour-chart').innerHTML = `<rect class="tour-band" x="380" y="4" width="132" height="182" rx="7"/><line class="tour-divider" x1="380" x2="380" y1="4" y2="186"/>
+    <path class="tour-grid" d="M34 22H374M34 88H374M34 122H374M34 184H374"/>
+    <text x="34" y="14">Stock</text><text x="34" y="114">Daily sales</text><text class="tour-band-label" x="390" y="20">14-day outlook</text>
+    ${tourSales.map((v, i) => `<rect class="tour-sale" x="${(x(i) - 3.5).toFixed(1)}" y="${salesY(v).toFixed(1)}" width="7" height="${(184 - salesY(v)).toFixed(1)}" rx="1.5"/>`).join('')}
+    <path class="tour-stock-line" id="tour-stock-line" d="${tourStock.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${stockY(v).toFixed(1)}`).join(' ')}"/>
+    <circle class="tour-pop" id="tour-stock-dot" r="4" cx="${x(30)}" cy="${stockY(341)}"/>
+    <path class="tour-demand-line" id="tour-demand-line" d="M${demandX(0)} ${demandY.toFixed(1)}H${demandX(13)}"/>
+    ${Array.from({length:14}, (_, i) => `<circle class="tour-demand-dot" cx="${demandX(i).toFixed(1)}" cy="${demandY.toFixed(1)}" r="2.6"/>`).join('')}
+    <text class="tour-band-value" x="390" y="${(demandY - 12).toFixed(1)}">148 / day</text>
+    <text x="34" y="204">Oct 5</text><text x="378" y="204" text-anchor="end">Nov 4</text><text x="512" y="204" text-anchor="end">Nov 18</text>`;
+})();
+const tourStockLine = tq('#tour-stock-line'), tourDemandLine = tq('#tour-demand-line');
+const tourStockLength = tourStockLine.getTotalLength(), tourDemandLength = tourDemandLine.getTotalLength();
+const tourSheetRows = tqa('.tour-sheet-body .tour-sheet-row'), tourChecks = tqa('.tour-checks li');
+const tourOthers = tqa('.tour-others [data-bar]'), tourSales$ = tqa('.tour-sale'), tourDemandDots = tqa('.tour-demand-dot');
+const tourOrderRows = tqa('.tour-order-list li'), tourSignalRows = tqa('.tour-signal'), tourNews = tqa('.tour-news article');
+// Cursor path: [time, target]. Targets are selectors or [x, y] fractions of the app window.
+const cursorPath = [
+  [0,'#tc-upload'],[650,'#tc-upload'],[1700,[.3,.62]],[2700,[.32,.6]],[3700,[.74,.62]],[5700,[.74,.6]],[6500,'#tour-big-number'],[9000,'#tour-big-number'],
+  [9900,'#td-tab-chart'],[10900,'#td-tab-chart'],[11250,'#td-tab-order'],[12800,'#td-tab-order'],[13400,'#ta-signals'],[14700,'#ta-signals'],
+  [15600,'#ts-row-0'],[18900,'#ts-row-0'],[19900,'#tc-reset'],[21300,'#tc-reset'],[22000,'#tc-upload']
+];
+const tourClicks = [700, 11300, 13500, 20000];
+let tourTime = reducedTour ? 7600 : 0, tourPlaying = !reducedTour, tourVisible = false, lastTourFrame = 0, tourFrame;
+function tourPoint(target) {
+  const stage = tourStage.getBoundingClientRect();
+  if (Array.isArray(target)) { const w = tourWindow.getBoundingClientRect(); return { x: w.left - stage.left + w.width * target[0], y: w.top - stage.top + w.height * target[1] }; }
+  const rect = tq(target).getBoundingClientRect();
+  return { x: rect.left - stage.left + rect.width * .5, y: rect.top - stage.top + rect.height * .6 };
 }
-function setCursor(x, y) {
-  tourCursor.style.setProperty('--cursor-x', x - 2 + 'px');
-  tourCursor.style.setProperty('--cursor-y', y - 2 + 'px');
-}
+const setOn = (selector, on) => tq(selector).classList.toggle('is-on', on);
+const countUp = (node, value, progress) => { node.textContent = Math.round(value * progress).toLocaleString('en-US'); };
 function renderTour() {
-  const index = tourStops.findIndex((stop, i) => i < 4 && tourTime >= stop && tourTime < tourStops[i + 1]);
-  if (index !== tourIndex) {
-    tourIndex = index;
-    tourStages.forEach((stage, i) => stage.setAttribute('aria-hidden', String(i !== index)));
-    tourSteps.forEach((step, i) => step.setAttribute('aria-pressed', String(i === index)));
-    tour.querySelector('#tour-url').textContent = ['pulse / home','pulse / sign up','pulse / workspace','pulse / results'][index];
-    tour.querySelector('#tour-nav-action').textContent = index ? 'Account' : 'Sign up';
-  }
-  const local = tourTime - tourStops[index];
-  tourSteps[index].style.setProperty('--step-progress', local / (tourStops[index + 1] - tourStops[index]));
-  const frames = cursorFrames[index];
-  const next = frames.findIndex(frame => frame[0] >= local);
-  const start = next < 0 ? frames.at(-1) : frames[Math.max(0, next - 1)];
-  const end = next < 0 ? start : frames[next];
-  const from = cursorPosition(start[1]), to = cursorPosition(end[1]);
-  const progress = start === end ? 1 : clamp((local - start[0]) / (end[0] - start[0]));
-  const ease = progress * progress * (3 - 2 * progress);
-  let x = from.x + (to.x - from.x) * ease, y = from.y + (to.y - from.y) * ease;
-  if (index === 3 && tourTime >= 11600) {
-    const day = clamp((tourTime - 11600) / 1800, 0, 1) * 9;
-    const whole = Math.floor(day), fraction = day - whole;
-    const left = stockCoords[whole], right = stockCoords[Math.min(9, whole + 1)];
-    const chartX = left[0] + (right[0] - left[0]) * fraction;
-    const chartY = left[1] + (right[1] - left[1]) * fraction;
-    const screen = new DOMPoint(chartX, chartY).matrixTransform(tour.querySelector('#tour-stock-svg').getScreenCTM());
-    const viewport = tourViewport.getBoundingClientRect();
-    x = screen.x - viewport.left; y = screen.y - viewport.top;
-    stockPoint.setAttribute('cx', chartX); stockPoint.setAttribute('cy', chartY);
-    tour.querySelector('#tour-stock-tooltip').textContent = `Day ${Math.round(day)} · ${stockDays[Math.round(day)]} units`;
-  } else if (index === 3) {
-    stockPoint.setAttribute('cx', '28'); stockPoint.setAttribute('cy', '38');
-    tour.querySelector('#tour-stock-tooltip').textContent = 'On hand · 132 units';
-  }
-  setCursor(x, y);
-  tourCursor.classList.toggle('is-clicking', [1900,2700,4200,5350,6400,7350,8400].some(t => Math.abs(tourTime - t) < 110));
-  tour.querySelector('#tour-email').textContent = index === 1 ? tourEmail.slice(0, clamp(Math.floor((tourTime - 2900) / 60), 0, tourEmail.length)) : '';
-  tour.querySelector('#tour-password').textContent = index === 1 ? '•'.repeat(clamp(Math.floor((tourTime - 4320) / 48), 0, 12)) : '';
-  tour.querySelector('#tour-sales-name').textContent = index === 2 && tourTime >= 6600 ? 'sample_sales.csv ✓' : 'No file selected';
-  tour.querySelector('#tour-inventory-name').textContent = index === 2 && tourTime >= 7550 ? 'Stock columns included ✓' : 'No file selected';
-  tour.querySelector('#tour-train-status').textContent = index !== 2 || tourTime < 8400 ? 'Ready when sales history is selected.' : tourTime < 8800 ? 'Preparing example results...' : tourTime < 9200 ? 'Loading example plan...' : 'Building your plan…';
-  tour.querySelector('#tour-progress').style.width = index === 2 ? clamp((tourTime - 8500) / 1150) * 100 + '%' : '0%';
-  const reveal = index === 3 ? clamp((tourTime - 9900) / 1400) : 0;
-  stockPath.style.strokeDasharray = stockLength;
-  stockPath.style.strokeDashoffset = stockLength * (1 - reveal);
-  tour.querySelector('.tour-stock-fill').style.opacity = reveal;
-  bars.forEach((bar, i) => bar.style.setProperty('--bar-progress', clamp((tourTime - 10200 - i * 55) / 500)));
-  tour.querySelector('#tour-demand-number').textContent = String(Math.round(214 * reveal));
-  tour.querySelector('#tour-order-number').textContent = String(Math.round(26 * clamp((tourTime - 11000) / 850)));
+  const t = tourTime;
+  const signals = between(t, 13600, 20200), working = !signals;
+  const reset = t >= 20200;
+  // App chrome
+  setOn('#tv-work', working); setOn('#tv-signals', signals);
+  tq('#tour-url').textContent = signals ? 'pulse / signals' : 'pulse / workspace';
+  tq('#ta-work').classList.toggle('is-on', working); tq('#ta-signals').classList.toggle('is-on', signals);
+  const tab = tq(signals ? '#ta-signals' : '#ta-work'), line = tq('#tour-tab-line');
+  line.style.transform = `translateX(${tab.offsetLeft}px) scaleX(${tab.offsetWidth / 100})`;
+  tq('#tc-upload').classList.toggle('is-pressed', between(t, 650, 850));
+  tq('#tc-reset').classList.toggle('is-pressed', between(t, 19950, 20150));
+  // Left pane: empty → upload → CSV preview
+  const live = !reset;
+  setOn('#tl-empty', t < 800 || reset); setOn('#tl-upload', between(t, 800, 2200)); setOn('#tl-preview', t >= 2200 && live);
+  const uploaded = clamp((t - 900) / 1100);
+  tq('#tl-upload-fill').style.transform = `scaleX(${easeOut(uploaded)})`;
+  tq('#tl-upload-pct').textContent = Math.round(easeOut(uploaded) * 100) + '%';
+  tourSheetRows.forEach((row, i) => row.classList.toggle('is-in', t >= 2250 + i * 55));
+  const scanning = between(t, 2500, 5100);
+  tq('#tour-scan').classList.toggle('is-on', scanning);
+  tq('#tour-scan').style.transform = `translateY(${(((t - 2500) / 850) % 1) * 100}%)`;
+  tq('#tour-focus').classList.toggle('is-on', t >= 5250);
+  const found = t >= 4000, ready = t >= 5200;
+  tq('#tour-tag-text').textContent = ready ? 'Plan ready' : found ? '24 medicines found' : 'Reading';
+  tq('#tour-tag').classList.toggle('is-ready', ready);
+  tq('#tl-file').textContent = t >= 800 && live ? 'pharmacy_sales.csv · 48 KB' : 'No file yet';
+  tq('#tl-state').textContent = !live || t < 800 ? '' : ready ? 'Plan ready' : t >= 2200 ? 'Checking…' : 'Uploading…';
+  tq('#tl-state').classList.toggle('is-ready', ready);
+  // Right pane steps
+  setOn('#tr-empty', t < 800 || reset); setOn('#tr-uploading', between(t, 800, 2400)); setOn('#tr-check', between(t, 2400, 5600));
+  setOn('#tr-readout', between(t, 5600, 9200)); setOn('#tr-detail', t >= 9200 && live);
+  const checkTimes = [[2550, 3150], [3150, 4000], [4000, 5000]];
+  tourChecks.forEach((li, i) => { li.classList.toggle('is-spin', between(t, ...checkTimes[i])); li.classList.toggle('is-done', t >= checkTimes[i][1]); });
+  const done = checkTimes.filter(([, end]) => t >= end).length;
+  tq('#tour-meter-count').textContent = `${done} / 3`;
+  tq('#tour-meter-fill').style.transform = `scaleX(${clamp((t - 2550) / 2450)})`;
+  countUp(tq('#tour-big-number'), 735, span(t, 5800, 1100));
+  tourOthers.forEach((bar, i) => { bar.classList.toggle('is-in', t >= 6200 + i * 120); bar.querySelector('em').style.transform = `scaleX(${span(t, 6300 + i * 120, 700) * bar.dataset.bar / 100})`; });
+  setOn('#tour-next', t >= 7300);
+  const orderTab = t >= 11300;
+  tq('#td-tab-chart').classList.toggle('is-on', !orderTab); tq('#td-tab-order').classList.toggle('is-on', orderTab);
+  setOn('#td-chart', !orderTab); setOn('#td-order', orderTab);
+  tourStockLine.style.strokeDasharray = tourStockLength;
+  tourStockLine.style.strokeDashoffset = tourStockLength * (1 - span(t, 9450, 1200));
+  tq('#tour-stock-dot').classList.toggle('is-in', t >= 10600);
+  tourSales$.forEach((bar, i) => { bar.style.transform = `scaleY(${span(t, 9550 + i * 22, 420)})`; });
+  tq('.tour-band').style.transform = `scaleX(${span(t, 10300, 500)})`;
+  tq('.tour-band-label').classList.toggle('is-in', t >= 10500);
+  const demand = span(t, 10550, 600);
+  tourDemandLine.style.strokeDasharray = tourDemandLength;
+  tourDemandLine.style.strokeDashoffset = tourDemandLength * (1 - demand);
+  tourDemandDots.forEach((dot, i) => dot.classList.toggle('is-in', demand > 0 && demand * 13.2 >= i));
+  tq('.tour-band-value').classList.toggle('is-in', t >= 11000);
+  tourOrderRows.forEach((row, i) => row.classList.toggle('is-in', t >= 11400 + i * 110));
+  setOn('.tour-note', t >= 11850);
+  // Signals view
+  tourSignalRows.forEach((row, i) => {
+    const grow = span(t, 13900 + i * 90, 650);
+    row.classList.toggle('is-in', t >= 13800 + i * 70);
+    row.querySelector('em').style.transform = `scaleX(${grow * row.dataset.score / 10})`;
+    countUp(row.querySelector('b'), +row.dataset.score, grow);
+  });
+  tourSignalRows[0].classList.toggle('is-hover', between(t, 15700, 19000));
+  setOn('#ts-pop', between(t, 16000, 19000));
+  tourNews.forEach((card, i) => card.classList.toggle('is-in', t >= 14100 + i * 140));
+  // Cursor
+  const next = cursorPath.findIndex(([time]) => time >= t);
+  const from = cursorPath[Math.max(0, next - 1)], to = cursorPath[next < 0 ? cursorPath.length - 1 : next];
+  const progress = from === to ? 1 : clamp((t - from[0]) / (to[0] - from[0]));
+  const eased = progress < .5 ? 4 * progress ** 3 : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+  const a = tourPoint(from[1]), b = tourPoint(to[1]);
+  tourCursor.style.setProperty('--cursor-x', a.x + (b.x - a.x) * eased - 3 + 'px');
+  tourCursor.style.setProperty('--cursor-y', a.y + (b.y - a.y) * eased - 3 + 'px');
+  tourCursor.classList.toggle('is-clicking', tourClicks.some(click => Math.abs(t - click) < 110));
 }
 function tourTick(now) {
-  if (lastTourFrame) tourTime = (tourTime + Math.min(now - lastTourFrame, 80)) % 14500;
+  if (lastTourFrame) tourTime = (tourTime + Math.min(now - lastTourFrame, 80)) % tourLength;
   lastTourFrame = now;
   renderTour();
   tourFrame = requestAnimationFrame(tourTick);
@@ -344,18 +466,11 @@ function syncTour() {
   cancelAnimationFrame(tourFrame);
   lastTourFrame = 0;
   tour.classList.toggle('is-playing', running);
-  tourToggle.textContent = tourPlaying ? 'Pause' : 'Play';
-  tourToggle.setAttribute('aria-label', tourPlaying ? 'Pause walkthrough' : 'Play walkthrough');
   if (running) tourFrame = requestAnimationFrame(tourTick);
 }
-tourSteps.forEach((step, index) => step.addEventListener('click', () => {
-  tourPlaying = false;
-  tourTime = Math.min(tourStops[index + 1] - 100, tourStops[index] + [1950, 3200, 3800, 3900][index]);
-  renderTour(); syncTour();
-}));
-tourToggle.addEventListener('click', () => { tourPlaying = !tourPlaying; syncTour(); });
 new IntersectionObserver(([entry]) => { tourVisible = entry.isIntersecting; syncTour(); }, { threshold: .15 }).observe(tour);
 document.addEventListener('visibilitychange', syncTour);
+addEventListener('resize', renderTour);
 renderTour();
 syncTour();
 const graphCards = [...document.querySelectorAll('#home .editorial-grid .editorial-card')];
