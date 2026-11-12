@@ -5,3 +5,7 @@ __pycache__/
 /data/
 /backend/data/
 /=5.20.1
+
+/backend/data/inventory.sqlite3*
+/graphify-out/
+/.impeccable/review/

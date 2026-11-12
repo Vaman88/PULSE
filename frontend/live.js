@@ -2,18 +2,21 @@
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const prettyDisease = key => key.replace(/_([12])w$/, '').replaceAll('_', ' ');
 let docsLoaded = false;
-async function api(path) {
-  const response = await fetch('/api/v1' + path, {headers:{Accept:'application/json'}});
+async function api(path, options = {}) {
+  const response = await fetch('/api/v1' + path, {...options, headers:{Accept:'application/json', ...options.headers}});
   const data = await response.json();
-  if (!response.ok) throw Error(data.detail || 'The API request failed');
+  if (!response.ok) throw Error(Array.isArray(data.detail) ? data.detail.map(item => `${item.loc.at(-1)}: ${item.msg}`).join('; ') : data.detail || 'The API request failed');
   return data;
 }
 let currentPage = 'home', backStack = [], signedIn = false, workspaceRequest = 0;
-const pages = {home:'Home', workspace:'Workspace', signals:'Signals', api:'API', access:'Sign in', privacy:'Privacy', terms:'Use & limitations'};
+const pages = {home:'Home', workspace:'Workspace', inventory:'Inventory', signals:'Signals', api:'API', access:'Sign in', privacy:'Privacy', terms:'Use & limitations'};
 function updateNavigation() {
   const active = $('.nav button.active'), indicator = $('.nav-indicator');
   indicator.style.opacity = active ? '1' : '0';
   if (active) { indicator.style.width = active.offsetWidth + 'px'; indicator.style.transform = `translateX(${active.offsetLeft}px)`; }
+  const tabs = $('#workspace-nav');
+  tabs.hidden = !signedIn || !['workspace','inventory'].includes(currentPage);
+  tabs.querySelectorAll('[data-screen]').forEach(node => { const active = node.dataset.screen === currentPage; node.classList.toggle('active', active); if (active) node.setAttribute('aria-current','page'); else node.removeAttribute('aria-current'); });
   $('#nav-back').disabled = !backStack.length;
   $('#nav-next-label').textContent = pages[nextPage()];
   $('#nav-next').setAttribute('aria-label', 'Next: ' + pages[nextPage()]);
@@ -28,12 +31,13 @@ function show(page, back=false) {
   workspaceRequest++;
   document.querySelectorAll('.screen').forEach(node => node.classList.toggle('active', node.id === page));
   document.querySelectorAll('.nav [data-screen]').forEach(node => {
-    node.classList.toggle('active', node.dataset.screen === page);
-    if (node.dataset.screen === page) node.setAttribute('aria-current','page'); else node.removeAttribute('aria-current');
+    node.classList.toggle('active', node.dataset.screen === (page === 'inventory' ? 'workspace' : page));
+    if (node.dataset.screen === (page === 'inventory' ? 'workspace' : page)) node.setAttribute('aria-current','page'); else node.removeAttribute('aria-current');
   });
   if (page === 'signals') loadSignals();
   if (page === 'api' && !docsLoaded) loadDocs();
   if (page === 'workspace' || page === 'access') loadPharmacy();
+  if (page === 'inventory') loadInventory();
   history.replaceState(null, '', '#' + page);
   scrollTo(0, 0);
   updateNavigation();
@@ -56,7 +60,7 @@ async function signOut() {
   try {
     const response = await fetch('/api/v1/logout', {method:'POST'});
     if (!response.ok && response.status !== 401) throw Error('Sign out failed. Try again.');
-    setSignedIn(false); $('#pharmacy-content').replaceChildren(); show('access');
+    setSignedIn(false); inventoryLoad++; inventoryItems = []; $('#inventory-content').replaceChildren(); $('#pharmacy-content').replaceChildren(); show('access');
   } catch (error) { alert(error.message); }
 }
 function scoreList(outputs) {
@@ -522,4 +526,4 @@ document.querySelectorAll('.faq-question').forEach(button => button.addEventList
   item.querySelector('.faq-panel').setAttribute('aria-hidden', String(!open));
 }));
 show(location.hash.slice(1) || 'home');
-if (!['workspace','access'].includes(currentPage)) { const request = workspaceRequest; api('/plan').then(() => { if (request === workspaceRequest) setSignedIn(true); }).catch(() => { if (request === workspaceRequest) setSignedIn(false); }); }
+if (!['workspace','access','inventory'].includes(currentPage)) { const request = workspaceRequest; api('/plan').then(() => { if (request === workspaceRequest) setSignedIn(true); }).catch(() => { if (request === workspaceRequest) setSignedIn(false); }); }

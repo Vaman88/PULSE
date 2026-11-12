@@ -840,3 +840,32 @@ html.has-graph-motion .editorial-workflow .editorial-card:first-child .card-art 
 .workspace-upload.ws-panel{padding:16px}}
 @media(prefers-reduced-motion:reduce){.ws-rise,.ws-others em,.ws-detail .inventory-card,.ws-detail .inventory-chart,.ws-order,.ws-order-list li,.ws-progress i{animation:none}
 .ws-chip{transition:none}}
+
+/* ---- Workspace tabs + Inventory screen in the product-tour style (CSS only; inventory.js unchanged) ---- */
+.frame .workspace-nav{justify-content:center;gap:6px;padding:18px var(--gutter) 0;border:0;background:var(--ice)}
+.frame .workspace-nav button{min-height:42px;padding:0 20px;border:1px solid #ffffffd9;border-radius:99px;background:#ffffffc2;box-shadow:0 6px 16px -6px #1d4a5033,inset 0 1px #fff;color:#16393d;font:700 13px 'DM Sans',sans-serif;cursor:pointer;transition:background .2s,color .2s,transform .18s cubic-bezier(.3,1.6,.5,1)}
+.frame .workspace-nav button:hover{background:#fff}
+.frame .workspace-nav button:active{transform:scale(.95)}
+.frame .workspace-nav button.active{background:#10211e;border-color:#10211e;color:#fff;box-shadow:0 6px 16px -6px #10211e66}
+#inventory.screen{position:relative;isolation:isolate;background:linear-gradient(180deg,var(--ice) 0,#dcf2f7 380px,var(--paper) 980px)}
+#inventory.screen::before{content:'';position:absolute;inset:0 0 auto;height:720px;z-index:-1;pointer-events:none;background:radial-gradient(40% 50% at 25% 20%,#ffffffb3,transparent 70%),radial-gradient(35% 45% at 80% 35%,#8fd3df66,transparent 70%);filter:blur(30px)}
+#inventory .inventory-workspace{animation:ws-rise .6s cubic-bezier(.2,.8,.2,1) both}
+#inventory .inventory-heading{padding:24px 26px;margin-bottom:16px;border:1px solid #ffffffcc;border-radius:20px;background:#f9fcfcd9;backdrop-filter:blur(20px) saturate(1.15);-webkit-backdrop-filter:blur(20px) saturate(1.15);box-shadow:0 0 0 1px #2c6d7414,0 34px 70px -30px #1d4a5059}
+#inventory .inventory-heading h1{font-size:clamp(30px,3.4vw,40px)}
+#inventory .inventory-workspace .btn{border-radius:99px}
+#inventory .inventory-toolbar{padding-bottom:0;border-bottom:0}
+#inventory .inventory-search,#inventory .inventory-filter select{border-color:#14212124;border-radius:99px;background:#fff}
+#inventory .inventory-search{padding:0 16px}
+#inventory .inventory-filter select{padding-left:16px}
+#inventory .inventory-table-scroll{border-color:#14212114;border-radius:14px}
+#inventory .inventory-table thead th{background:#eef5f5;color:#5f7a78;font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase}
+#inventory .inventory-table th,#inventory .inventory-table td{padding:13px 16px}
+#inventory .inventory-edit,#inventory .inventory-table-footer button,#inventory .inventory-editor-head button{border-radius:99px;padding:6px 14px}
+#inventory .inventory-editor{border-color:#14212114;border-radius:14px;box-shadow:0 20px 40px -24px #1d4a5040;animation:ws-fade .35s ease both}
+#inventory .inventory-editor input,#inventory .inventory-editor select{border-radius:9px}
+#inventory .inventory-empty{border:1.5px dashed #9fc3c3;border-radius:14px;background:#eef7f6}
+@media(max-width:760px){.frame .workspace-nav{padding-top:14px}
+.frame .workspace-nav button{flex:1;max-width:200px;padding:0 12px}
+#inventory .inventory-heading{padding:18px 16px;border-radius:16px}}
+@media(prefers-reduced-motion:reduce){#inventory .inventory-workspace,#inventory .inventory-editor{animation:none}
+.frame .workspace-nav button{transition:none}}
